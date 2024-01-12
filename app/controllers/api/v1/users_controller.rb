@@ -43,7 +43,7 @@ module Api
       def user_params
         params.require(:user).permit(:email, :password)
       end
-  
+
       def generate_refresh_token
         loop do
           # generate a random token string and return it, 
