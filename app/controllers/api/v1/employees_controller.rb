@@ -3,7 +3,7 @@ module Api
     module V1
       class EmployeesController < ApplicationController
             # before_action :authenticate_user!
-            before_action :doorkeeper_authorize!
+            skip_before_action :doorkeeper_authorize!
             before_action :authenticate_admin, only: [:create, :index, :show, :update, :destroy]
 
             def index
@@ -16,6 +16,7 @@ module Api
             end
             def create 
                 @employee = Employee.new(emp_params)
+                @employee.user = current_user
                 if @employee.save
                     render json: {data: @employee, message: "Employee created succesfully"}, status: :created
                 else
@@ -41,14 +42,13 @@ module Api
             def emp_params
                 params.require(:employee).permit(:name, :email)
             end
+
             def authenticate_admin
                 # Use Doorkeeper's current_resource_owner
-                user = current_resource_owner
-        
+                user = current_user
                 # Modify the condition to check if the user is an admin
-                if user&.admin?
+                unless user&.admin?
                   # No need to sign in again, as Doorkeeper will handle it
-                else
                   render json: { error: "Unauthorized access" }, status: :unauthorized
                 end
             end
