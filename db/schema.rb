@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2024_01_12_060834) do
+ActiveRecord::Schema.define(version: 2024_01_12_095651) do
 
   create_table "employees", force: :cascade do |t|
     t.string "name"
@@ -18,6 +18,26 @@ ActiveRecord::Schema.define(version: 2024_01_12_060834) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.integer "user_id"
+  end
+
+  create_table "holidays", force: :cascade do |t|
+    t.string "h_type"
+    t.text "description"
+    t.date "start_date"
+    t.date "end_date"
+    t.integer "employee_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+  end
+
+  create_table "leaves", force: :cascade do |t|
+    t.text "description"
+    t.date "start_date"
+    t.date "end_date"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.integer "employee_id"
+    t.string "leave_type"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|

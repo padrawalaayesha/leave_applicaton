@@ -6,6 +6,11 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :employees, only: [:index, :create, :show , :update, :destroy]
       post "users/sign_in", to: "users#sign_in"
+      resources :holidays, only: [ :index, :show, :create] do
+        collection do
+          get 'index_for_employee/:employee_id', to: 'holidays#index_for_employee', as: 'index_for_employee'
+        end
+      end
     end
   end
   use_doorkeeper do
