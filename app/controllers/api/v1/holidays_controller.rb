@@ -2,10 +2,9 @@ module Api
     module V1
 
         class HolidaysController < ApplicationController
-            skip_before_action :doorkeeper_authorize!
 
             def index
-                @holiday = Holiday.all
+                @holidays = Holiday.all
                 render json: {data: @holiday, message: "Holidays are fetched successfully"}, status: :ok
             end
 
@@ -26,7 +25,7 @@ module Api
 
             def create
                 @employee = current_user.employees.find(holiday_params[:employee_id])
-                @holiday = @employee.holidays.create(holiday_params)
+                @holiday = @employee.holidays.new(holiday_params)
                 if @holiday.save
                     render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
                 else
