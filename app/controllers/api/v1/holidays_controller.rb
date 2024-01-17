@@ -3,7 +3,7 @@ module Api
     class HolidaysController < ApplicationController
 
       def index
-
+        current_user.admin?
         @holidays = Holiday.all
         render json: {data: @holidays, message: "Holidays are fetched successfully"}, status: :ok
       end
