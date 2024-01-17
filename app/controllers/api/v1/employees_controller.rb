@@ -19,7 +19,10 @@ module Api
         def create 
           @employee = Employee.new(emp_params)
           @employee.user = current_user
+          @employee.password = SecureRandom.alphanumeric(10)
+          admin_email = current_user.email
           if @employee.save
+              EmployeeMailer.welcome_mail(@employee, @employee.password, admin_email).deliver_now
               render json: {data: @employee, message: "Employee created succesfully"}, status: :created
           else
               render json: {error: @employee.errors.full_messages}, status: :unprocessable_entity
@@ -44,7 +47,7 @@ module Api
         private
 
           def emp_params
-            params.require(:employee).permit(:name, :email)
+            params.require(:employee).permit(:name, :email, :password)
           end
 
           def authenticate_admin

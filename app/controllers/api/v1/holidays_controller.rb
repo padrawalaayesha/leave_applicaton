@@ -3,30 +3,37 @@ module Api
     class HolidaysController < ApplicationController
 
       def index
+
         @holidays = Holiday.all
         render json: {data: @holidays, message: "Holidays are fetched successfully"}, status: :ok
       end
 
       def show
         @holiday = Holiday.find_by_id(params[:id])
-        render json: {data: @holiday, message: "Holiday is fetched successfully"}, status: :ok
+        if @holiday.present?
+          attached_document = @holiday.document_holiday_attachement
+          render json: {data: @holiday,  attached_document: attached_document.present? ? attached_document.blob.filename : nil}, status: :ok
+        else
+          render json: { error: "Holiday not found" }, status: :not_found
+        end
       end
           
       def index_for_employee
         @employee = current_user.employees.find(params[:employee_id])
-        @holiday = @employee.holidays
+        @holidays = @employee.holidays
         if @holidays.present?
-          render json: {data: @holiday , message: "Your leave request has been accepted by the admin"}, status: :ok
+          render json: {data: @holidays , message: "Your leave request has been accepted by the admin"}, status: :ok
         else
-            render json: {error: @holiday.errors.full_messages}, status: :unprocessable_entity
+            render json: {error: @holidays.errors.full_messages}, status: :unprocessable_entity
         end      
       end
 
       def create
-        @employee = current_user.employees.find(holiday_params[:employee_id])
+        @employee = current_user.employees.find_by(id: holiday_params[:employee_id])
         @holiday = @employee.holidays.new(holiday_params)
         @holiday.approval_status = nil
         @holiday.rejection_reason = nil
+        @holiday.document_holiday.attach(params[:holiday][:document_holiday]) if params[:holiday][:document_holiday].present?
         if @holiday.save
             render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
         else
@@ -50,7 +57,9 @@ module Api
       end
 
       def upload_public_holiday
-        @public_holiday = PublicHoliday.create(public_holiday_params)
+        @public_holiday = Holiday.create(holiday_params)
+        @public_holiday.approval_status = nil
+        @public_holiday.rejection_reason = nil
         if @public_holiday.save
           render json: {data: @public_holiday, message: "Admin has successfully added the public holiday"}, status: :ok
         else
@@ -59,8 +68,12 @@ module Api
       end
 
       def get_public_holidays
-        @public_holidays = PublicHoliday.all
-        render json: {data: @public_holidays, message: "Public Holidays list has been fetched successfully"}, status: :ok
+        @public_holidays  = Holiday.where(h_type: "Public")
+        if @public_holidays.present?
+          render json: {data: @public_holidays, message: "Public Holidays list has been fetched successfully"}, status: :ok
+        else
+          render json: {error: "Public Holidays list is not created"}, status: :not_found
+        end
       end
 
       private
@@ -70,7 +83,7 @@ module Api
       end
 
       def holiday_params
-        params.require(:holiday).permit(:h_type, :description, :start_date, :end_date, :employee_id, :approval_status, :rejection_reason)
+        params.require(:holiday).permit(:h_type, :description, :start_date, :end_date, :employee_id, :approval_status, :rejection_reason, :document_holiday)
       end
 
       def handle_approval_admin
@@ -93,4 +106,4 @@ module Api
 
     end
   end
-end     
+end       
