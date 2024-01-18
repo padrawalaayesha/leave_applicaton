@@ -90,19 +90,25 @@ module Api
         if params[:approval_status] == true
           @holiday.update(approval_status: true,rejection_reason: nil)
           message = "Your leave has been accepted by admin" 
+        
 
         elsif params[:approval_status] == false
+          rejection_reason = params[:rejection_reason]
           @holiday.update(approval_status: false, rejection_reason: params[:rejection_reason])
-          message = "Your leave has been rejected by admin"
+          message = "Your leave has been rejected by admin. Rejection Reason: #{rejection_reason}"
+          
 
         elsif params[:approval_status].nil?
           @holiday.update(approval_status: nil, rejection_reason: nil)
           message = "Your leave is pending"
+          
         else
           render json:{error: "Inavalid parameter for leave request"}, status: :unprocessable_entity
         end
         render json: {data: @holiday, message: message}, status: :ok
       end
+
+
 
     end
   end
