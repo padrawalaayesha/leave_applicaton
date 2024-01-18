@@ -16,6 +16,8 @@ Rails.application.routes.draw do
           patch 'approve/:employee_id/:holiday_id', to: 'holidays#approve_holiday', as: 'approve_holiday'
           post 'upload_public_holiday', to: 'holidays#upload_public_holiday', as: 'upload_public_holiday'
           get 'get_public_holidays', to: 'holidays#get_public_holidays', as: 'get_public_holiday'
+          get 'get_pending_leaves', to: 'holidays#get_pending_leaves', as: 'get_pending_leaves'
+          get 'get_remaining_leaves', to: 'holidays#get_remaining_leaves', as: 'get_remaining_leaves'
         end
       end
     end
