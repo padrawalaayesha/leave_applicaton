@@ -5,6 +5,13 @@ class Holiday < ApplicationRecord
     MAX_ALLOWED_HOLIDAYS = 15
 
     has_one_attached :document_holiday
+
+    validates :h_type, presence: true
+    validates :description , presence: true
+    validates :start_date, presence: true
+    validates :end_date, presence: true
+    
+
     
     def approved?
         approval_status == true

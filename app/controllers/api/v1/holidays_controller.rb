@@ -4,8 +4,8 @@ module Api
 
       def index
         if current_user.admin?
-          @holidays = Holiday.all
-          render json: {data: @holidays, message: "Holidays are fetched successfully"}, status: :ok
+          @holidays = Holiday.where.not(h_type: "Public")
+          render json: {data: @holidays, message: "Holidays request from employees are fetched successfully"}, status: :ok
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
         end
@@ -56,7 +56,7 @@ module Api
 
       def create
         unless current_user.admin?
-          @employee = current_user.employees.find_by(id: holiday_params[:employee_id])
+          @employee = Employee.find_by(id: current_user.id.to_s)
           @holiday = @employee.holidays.new(holiday_params)
           @holiday.approval_status = nil
           @holiday.rejection_reason = nil
