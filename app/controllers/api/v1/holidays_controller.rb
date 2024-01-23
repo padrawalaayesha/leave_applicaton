@@ -56,13 +56,14 @@ module Api
 
       def create
         unless current_user.admin?
-          @employee = Employee.find_by(id: current_user.id.to_s)
-          @holiday = @employee.holidays.new(holiday_params)
+          # @employee = Employee.find_by(id: current_user.id.to_s)
+          @holiday = current_user.holidays.new(holiday_params)
           @holiday.approval_status = nil
           @holiday.rejection_reason = nil
           @holiday.document_holiday.attach(params[:holiday][:document_holiday]) if params[:holiday][:document_holiday].present?
           if @holiday.save
-              send_pending_notification_leave_mail(@employee, @holiday)
+              @num_of_days = (@holiday.end_date - @holiday.start_date).to_i
+              send_pending_notification_leave_mail(@employee, @holiday, @num_of_days)
               render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
           else
               render json: {error: @holiday.errors.full_messages}, status: :unprocessable_entity
@@ -78,11 +79,15 @@ module Api
           @holiday = @employee.holidays.find_by(id: params[:holiday_id])
 
           if @holiday
+            if @holiday.approval_status.nil?
               if @employee.holidays.where(approval_status: true).count < Holiday::MAX_ALLOWED_HOLIDAYS || params[:approval_status].nil?
                 handle_approval_admin
               else
                 render json: {error: "Employee has already reached the maximum allowed leave request that is 15"}, status: :unprocessable_entity
               end
+            else 
+              render json: {error: "Leave request has already been approved/rejected"}, status: :unprocessable_entity
+            end  
           else
             render json: {error: @holiday.errors.full_messages}, status: :unprocessable_entity
           end
@@ -107,7 +112,7 @@ module Api
       end
 
       def get_public_holidays
-        @public_holidays  = Holiday.where(h_type: "Public")
+        @public_holidays  = Holiday.where(h_type: "Public").order(:start_date)
         if @public_holidays.present?
           render json: {data: @public_holidays, message: "Public Holidays list has been fetched successfully"}, status: :ok
         else
@@ -163,13 +168,13 @@ module Api
         if params[:approval_status] == true
           @holiday.update(approval_status: true,rejection_reason: nil)
           message = "Your leave has been accepted by admin" 
-          send_notification_leave_mail(@holiday.employee, message)
+          send_notification_leave_mail(@holiday.employee, @holiday,message)
 
         elsif params[:approval_status] == false
           rejection_reason = params[:rejection_reason]
           @holiday.update(approval_status: false, rejection_reason: params[:rejection_reason])
           message = "Your leave has been rejected by admin. Rejection Reason: #{rejection_reason}"
-          send_notification_leave_mail(@holiday.employee, message)
+          send_notification_leave_mail(@holiday.employee, @holiday,message)
 
         else
           render json:{error: "Inavalid parameter for leave request"}, status: :unprocessable_entity
@@ -177,14 +182,22 @@ module Api
         render json: {data: @holiday, message: message}, status: :ok
       end
 
-      def send_notification_leave_mail(employee, message)
-        admin_email = "padrawalaa@gmail.com"
-        EmployeeMailer.leave_status_notification(employee, @holiday, message, admin_email).deliver_now
+      def calculate_num_of_days(start_date, end_date)
+        (end_date - start_date).to_i
       end
 
-      def send_pending_notification_leave_mail(employee, holiday)
+      def send_notification_leave_mail(employee, holiday, message)
         admin_email = "padrawalaa@gmail.com"
-        message = "Your leave request is pending, the status regardng it will be provided in a week"
+        # num_of_days = calculate_num_of_days(holiday.start_date, holiday.end_date)
+        # message = "Number of days: #{num_of_days}.\n #{message}"
+        EmployeeMailer.leave_status_notification(employee, holiday, message, admin_email).deliver_now
+      end
+
+      def send_pending_notification_leave_mail(employee, holiday, num_of_days)
+        employee = current_user
+        admin_email = "padrawalaa@gmail.com"
+        # num_of_days = calculate_num_of_days(holiday.start_date, holiday.end_date)
+        # message = "Number of days: #{num_of_days}.\nYour leave request is pending, the status regardng it will be provided in a week"
         EmployeeMailer.leave_status_notification(employee, holiday, message, admin_email).deliver_now
       end
     end

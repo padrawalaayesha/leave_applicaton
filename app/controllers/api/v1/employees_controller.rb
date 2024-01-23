@@ -18,6 +18,7 @@ module Api
         end
 
         def create 
+          byebug
           @employee = Employee.new(emp_params)
           @employee.user = current_user
           @employee.password = SecureRandom.alphanumeric(10)
@@ -28,7 +29,7 @@ module Api
           else
               render json: {error: @employee.errors.full_messages}, status: :unprocessable_entity
           end
-        end
+        end 
 
         def update 
           @employee = Employee.find_by_id(params[:id])
@@ -69,7 +70,7 @@ module Api
         private
 
           def emp_params
-            params.require(:employee).permit(:name, :email, :password)
+            params.require(:employee).permit(:name, :email, :user_id)
           end
 
           def generate_access_token(employee)

@@ -2,6 +2,7 @@
 <p>Dear <%= @employee.name %>,</p>
 <% if @holiday.present? %>
   <p>Regarding your leave request: <%= @holiday.description %><br/>From: <%= @holiday.start_date %>&nbsp; To: <%= @holiday.end_date %></p>
+  <p>Number of days: <%=(@holiday.end_date - @holiday.start_date).to_i%></p>
 <% else %>
   <p>Regarding your leave request: [No holiday information]</p>
 <% end %>
