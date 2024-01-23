@@ -1,7 +1,6 @@
 class EmployeeMailer < ApplicationMailer
-    def welcome_mail(employee, password, admin_email)
+    def welcome_mail(employee, admin_email)
         @employee = employee
-        @password = password
         mail(to: @employee.email, from: admin_email ,subject: "Welcome to Company's Leave Portal")
     end
 
@@ -11,4 +10,5 @@ class EmployeeMailer < ApplicationMailer
         @message = message
         mail(to: @employee.email, from: admin_email, subject: "Leave Status Notification")
     end
+
 end

@@ -3,7 +3,7 @@ module Api
   module V1
     class EmployeesController < ApplicationController
             # before_action :authenticate_user!
-        skip_before_action :doorkeeper_authorize!, only: :create_token
+        skip_before_action :doorkeeper_authorize!, only: [:create_token, :create]
         before_action :current_user_admin, except: [:create_token]
         # before_action :authenticate_admin, only: [:create, :index, :show, :update, :destroy]
 
@@ -18,14 +18,10 @@ module Api
         end
 
         def create 
-          byebug
           @employee = Employee.new(emp_params)
-          @employee.user = current_user
-          @employee.password = SecureRandom.alphanumeric(10)
-          admin_email = current_user.email
+          @employee.user_id = 1
           if @employee.save
-              EmployeeMailer.welcome_mail(@employee, @employee.password, admin_email).deliver_now
-              render json: {data: @employee, message: "Employee created succesfully"}, status: :created
+              render json: {data: @employee, message: "Employee registration successfully. Waiting for approval"}, status: :created
           else
               render json: {error: @employee.errors.full_messages}, status: :unprocessable_entity
           end
@@ -67,10 +63,29 @@ module Api
         end
 
 
+        def approve_employee
+          @employee = current_user.employees.find_by(id: params[:employee_id])
+          admin_email = current_user.email
+          if (@employee.approval_status == "pending")
+            if(params[:approval_status] == "True")
+              @employee.update(approval_status: "True")
+              message = "Your registration request has been approved by the admin."
+              EmployeeMailer.welcome_mail(@employee, admin_email).deliver_now
+            else (params[:approval_status] == "False")
+              @employee.update(approval_status: "False")
+              message = "Your registration request has been rejected by the admin."
+              EmployeeMailer.welcome_mail(@employee, admin_email).deliver_now
+            end
+          else
+            render json: {error: "Invalid paramter for approval"}, status: :unprocessable_entity
+          end
+          render json: {data: @employee, message: message}, status: :ok
+        end
+
         private
 
           def emp_params
-            params.require(:employee).permit(:name, :email, :user_id)
+            params.require(:employee).permit(:name, :email, :department, :date_of_joining, :birth_date, :education, :passing_year, :designation ,:password, :password_confirmation)
           end
 
           def generate_access_token(employee)
