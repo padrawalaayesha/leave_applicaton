@@ -19,6 +19,10 @@ Rails.application.routes.draw do
           get 'get_public_holidays', to: 'holidays#get_public_holidays', as: 'get_public_holiday'
           get 'get_pending_leaves', to: 'holidays#get_pending_leaves', as: 'get_pending_leaves'
           get 'get_remaining_leaves', to: 'holidays#get_remaining_leaves', as: 'get_remaining_leaves'
+          get 'get_employee_leave_details/:employee_id', to: 'holidays#get_employee_leave_details', as: 'get_employee_leave_details' 
+          get 'get_leave_details', to: 'holidays#get_leave_details', as: 'get_leave_details'
+          get 'get_approved_holidays', to: 'holidays#get_approved_holidays', as: 'get_approved_holidays'
+          get 'get_approved_leave_without_pay', to: 'holidays#get_approved_leave_without_pay', as: 'get_approved_leave_without_pay'
         end
       end
     end

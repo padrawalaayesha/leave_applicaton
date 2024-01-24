@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2024_01_23_094733) do
+ActiveRecord::Schema.define(version: 2024_01_24_062936) do
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -48,6 +48,10 @@ ActiveRecord::Schema.define(version: 2024_01_23_094733) do
     t.string "education"
     t.string "passing_year"
     t.string "approval_status", default: "pending"
+    t.integer "casual_leave_count"
+    t.integer "sick_leave_count"
+    t.integer "work_from_home_count"
+    t.integer "leave_without_pay_count"
   end
 
   create_table "holidays", force: :cascade do |t|
