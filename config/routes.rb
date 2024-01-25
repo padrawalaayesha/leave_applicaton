@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       resources :employees, only: [:index, :create, :show , :update, :destroy] do
         collection do
           post 'create_token', to: 'employees#create_token', as: 'create_token'
+          put 'approve/:employee_id', to: 'employees#approve_employee', as: 'approve_employee'
         end
       end
       post "users/sign_in", to: "users#sign_in"
