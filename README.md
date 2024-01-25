@@ -22,3 +22,8 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
+* <h1>Leave Status Notification</h1>
+<p>Dear <%= @employee.name %>,</p>
+<p>Regarding your leave request: <%=@holiday.description%></br>from: <%=@holiday.start_date%>&nbsp; to:<%=@holiday.end_date%></p>
+<p>Status: <%= @message %></p>
+<p>Thank you.</p>
