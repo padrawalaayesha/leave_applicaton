@@ -133,7 +133,8 @@ module Api
                 holiday_description: holiday.description,
                 start_date: holiday.start_date,
                 end_date: holiday.end_date,
-                number_of_days: (holiday.end_date - holiday.start_date).to_i
+                number_of_days: (holiday.end_date - holiday.start_date).to_i,
+                approval_status: "pending"
               }
             }
           end
@@ -258,15 +259,17 @@ module Api
         unless current_user.admin?
           @holidays = current_user.holidays
           leave_history = @holidays.map do |holiday| 
-            {
+            details = {
               h_type: holiday.h_type,
               description: holiday.description,
               start_date: holiday.start_date,
               end_date: holiday.end_date,
               number_of_days: (holiday.end_date - holiday.start_date).to_i,
-              approval_status: holiday.approval_status.nil? ? "pending" : holiday.approval_status
-              
+              approval_status: holiday.approval_status.nil? ? "pending" : holiday.approval_status,
+              # rejection_reason: holiday.rejection_reason if holiday.approval_status == false  
             }
+            details[:rejection_reason] = holiday.rejection_reason if holiday.approval_status == false
+            details
           end
           render json: {data: leave_history, message: "#{current_user.name} Leave History"}, status: :ok
         else
@@ -281,18 +284,22 @@ module Api
             casual_leave_details = {
               max_allowed: Holiday::MAX_CASUAL_LEAVES,
               taken: @employee.casual_leave_count.nil? ? 0 : @employee.casual_leave_count,
-              remaining: remaining_leave_count_for_type(@employee, "casual_leave")
+              remaining: remaining_leave_count_for_type(@employee, "casual_leave"),
+              holidays: holiday_details_for_type(@employee, "casual_leave")
             }
             sick_leave_details = {
               max_allowed: Holiday::MAX_SICK_LEAVES,
               taken: @employee.sick_leave_count.nil? ? 0 : @employee.sick_leave_count,
-              remaining: remaining_leave_count_for_type(@employee, "sick_leave")
+              remaining: remaining_leave_count_for_type(@employee, "sick_leave"),
+              holidays: holiday_details_for_type(@employee, "sick_leave")
             }
             work_from_home_details = {
-              taken: @employee.work_from_home_count.nil? ? 0 : @employee.work_from_home_count
+              taken: @employee.work_from_home_count.nil? ? 0 : @employee.work_from_home_count,
+              holidays: holiday_details_for_type(@employee, "work_from_home")
             }
             leave_without_pay_count_details = {
-              taken: @employee.leave_without_pay_count.nil? ? 0 : @employee.leave_without_pay_count
+              taken: @employee.leave_without_pay_count.nil? ? 0 : @employee.leave_without_pay_count,
+              holidays: holiday_details_for_type(@employee, "leave_without_pay")
             }
 
             render json: {
@@ -341,6 +348,45 @@ module Api
             }
           end
           render json: employee_leave_details, status: :ok
+        else
+          render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
+        end
+      end
+
+      def get_leave_details_filtered
+        if current_user.admin?
+          year = params[:year] 
+          if params[:year].nil? || params[:year].blank?
+            return render json: {error: "Year must be present"}, status: :unprocessable_entity
+          end
+          department = params[:department] 
+          h_type = params[:h_type]
+
+          holidays = Holiday.where("strftime('%Y', start_date) = ?", year).where.not(h_type: "Public")
+
+          if department.present?
+            department_id = Employee.departments[department]
+            holidays = holidays.joins(:employee).where(employees: {department: department_id})
+          end
+
+          if h_type.present?
+            holidays = holidays.where(h_type: h_type)
+          end
+          leave_details = holidays.map do |holiday|
+            details = {
+              employee_name: holiday.employee.name,
+              depattment: holiday.employee.department,
+              h_type: holiday.h_type,
+              description: holiday.description,
+              start_date: holiday.start_date,
+              end_date: holiday.end_date,
+              number_of_days: (holiday.end_date - holiday.start_date).to_i,
+              approval_status: holiday.approval_status.nil? ? "pending" : holiday.approval_status
+            }
+            details[:rejection_reason] = holiday.rejection_reason if holiday.approval_status == false
+            details
+          end
+          render json: {data: leave_details}, status: :ok
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
         end
@@ -433,6 +479,21 @@ module Api
           @employee.increment!(:casual_leave_count)
         when "sick_leave"
           @employee.increment!(:sick_leave_count)
+        end
+      end
+
+      def holiday_details_for_type(employee, h_type)
+        employee.holidays.where(h_type: h_type).where.not(approval_status: nil).map do |holiday|
+          details = {
+            description: holiday.description,
+            start_date: holiday.start_date,
+            end_date: holiday.end_date,
+            number_of_days: (holiday.end_date - holiday.start_date).to_i,
+            approval_status: holiday.approval_status,
+            # rejection_reason: holiday.rejection_reason if holiday.approval_status == false
+          }
+          details[:rejection_reason] = holiday.rejection_reason if holiday.approval_status == false
+          details
         end
       end
 

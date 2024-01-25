@@ -7,7 +7,7 @@ class Holiday < ApplicationRecord
 
     has_one_attached :document_holiday
 
-    HOLIDAY_TYPES = ["casual_leave", "sick_leave", "work_from_home", "leave_without_pay", "others"]
+    HOLIDAY_TYPES = ["casual_leave", "sick_leave", "work_from_home", "leave_without_pay"]
 
     validates :h_type, presence: true, inclusion: {in: HOLIDAY_TYPES}
     validates :description , presence: true

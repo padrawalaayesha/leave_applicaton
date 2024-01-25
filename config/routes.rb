@@ -24,6 +24,7 @@ Rails.application.routes.draw do
           get 'get_approved_holidays', to: 'holidays#get_approved_holidays', as: 'get_approved_holidays'
           get 'get_approved_leave_without_pay', to: 'holidays#get_approved_leave_without_pay', as: 'get_approved_leave_without_pay'
           get 'get_leave_history_for_employee', to: 'holidays#get_leave_history_for_employee', as: 'get_leave_history_for_employee'
+          get 'get_leave_details_filtered', to: 'holidays#get_leave_details_filtered', as: 'get_leave_details_filtered'
         end
       end
     end
