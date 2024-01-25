@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2024_01_12_095651) do
+ActiveRecord::Schema.define(version: 2024_01_16_114922) do
 
   create_table "employees", force: :cascade do |t|
     t.string "name"
@@ -28,6 +28,8 @@ ActiveRecord::Schema.define(version: 2024_01_12_095651) do
     t.integer "employee_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.boolean "approval_status", default: false
+    t.text "rejection_reason"
   end
 
   create_table "leaves", force: :cascade do |t|
@@ -80,6 +82,13 @@ ActiveRecord::Schema.define(version: 2024_01_12_095651) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["uid"], name: "index_oauth_applications_on_uid", unique: true
+  end
+
+  create_table "public_holidays", force: :cascade do |t|
+    t.date "date"
+    t.string "name"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
   end
 
   create_table "users", force: :cascade do |t|

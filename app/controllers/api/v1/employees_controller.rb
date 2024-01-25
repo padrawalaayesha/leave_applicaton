@@ -3,6 +3,7 @@ module Api
   module V1
     class EmployeesController < ApplicationController
             # before_action :authenticate_user!
+        
         before_action :authenticate_admin, only: [:create, :index, :show, :update, :destroy]
 
         def index
