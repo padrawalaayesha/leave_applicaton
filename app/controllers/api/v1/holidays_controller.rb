@@ -254,6 +254,26 @@ module Api
         end
       end
 
+      def get_leave_history_for_employee
+        unless current_user.admin?
+          @holidays = current_user.holidays
+          leave_history = @holidays.map do |holiday| 
+            {
+              h_type: holiday.h_type,
+              description: holiday.description,
+              start_date: holiday.start_date,
+              end_date: holiday.end_date,
+              number_of_days: (holiday.end_date - holiday.start_date).to_i,
+              approval_status: holiday.approval_status.nil? ? "pending" : holiday.approval_status
+              
+            }
+          end
+          render json: {data: leave_history, message: "#{current_user.name} Leave History"}, status: :ok
+        else
+          render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
+        end
+      end
+
       def get_employee_leave_details
         @employee = Employee.find_by(id: params[:employee_id])
         if @employee.present?
