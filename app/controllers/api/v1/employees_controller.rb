@@ -3,8 +3,9 @@ module Api
   module V1
     class EmployeesController < ApplicationController
             # before_action :authenticate_user!
+        skip_before_action :doorkeeper_authorize!, only: :create_token
         
-        before_action :authenticate_admin, only: [:create, :index, :show, :update, :destroy]
+        # before_action :authenticate_admin, only: [:create, :index, :show, :update, :destroy]
 
         def index
           @employees = Employee.all
@@ -12,7 +13,7 @@ module Api
         end
 
         def show 
-          @employee = Employee.find(params[:id])
+          @employee = Employee.find_by_id(params[:id])
           render json: {data: @employee, message: "Employee is fetched successfully"}, status: :ok
         end
 
@@ -44,20 +45,43 @@ module Api
           head :no_content
         end
 
+
+        def create_token
+          byebug
+          email = params[:email]
+          password = params[:password]
+
+          @employee = Employee.find_by(email: email)
+          if @employee
+            access_token = generate_access_token(@employee)
+            render json:{
+              access_token: access_token.token,
+              token_type: 'bearer',
+              expires_in: access_token.expires_in,
+              message: "Access token generated successfully"
+            }, status: :ok
+          else
+            render json: {error: "invalid password or email"}, status: :unprocessable_entity
+          end
+          
+        end
+
+
         private
 
           def emp_params
             params.require(:employee).permit(:name, :email, :password)
           end
 
-          def authenticate_admin
-                  # Use Doorkeeper's current_resource_owner
-            user = current_user
-                  # Modify the condition to check if the user is an admin
-            unless user&.admin?
-                    # No need to sign in again, as Doorkeeper will handle it
-            render json: { error: "Unauthorized access" }, status: :unauthorized
-            end
+          def generate_access_token(employee)
+            application = Doorkeeper::Application.find_by(uid: params[:client_id])
+            Doorkeeper::AccessToken.create(
+              resource_owner_id: employee.user.id,
+              application_id: application.id,
+              refresh_token: SecureRandom.hex(32),
+              expires_in: Doorkeeper.configuration.access_token_expires_in.to_i,
+              scopes: ''
+            )
           end
               # def authenticate_admin
               #     user = User.find_by(email: params[:email])

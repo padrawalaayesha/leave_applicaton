@@ -4,7 +4,11 @@ Rails.application.routes.draw do
   # config/routes.rb
   namespace :api do
     namespace :v1 do
-      resources :employees, only: [:index, :create, :show , :update, :destroy]
+      resources :employees, only: [:index, :create, :show , :update, :destroy] do
+        collection do
+          post 'create_token', to: 'employees#create_token', as: 'create_token'
+        end
+      end
       post "users/sign_in", to: "users#sign_in"
       resources :holidays, only: [ :index, :show, :create] do
         collection do

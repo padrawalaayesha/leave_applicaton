@@ -4,4 +4,6 @@ class EmployeeMailer < ApplicationMailer
         @password = password
         mail(to: @employee.email, from: admin_email ,subject: "Welcome to Company's Leave Portal")
     end
+
+
 end
