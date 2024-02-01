@@ -278,6 +278,7 @@ module Api
       end
 
       def get_employee_leave_details
+      
         @employee = Employee.find_by(id: params[:employee_id])
         if @employee.present?
           if current_user.admin? || (current_user.id.to_s == params[:employee_id])
@@ -301,13 +302,18 @@ module Api
               taken: @employee.leave_without_pay_count.nil? ? 0 : @employee.leave_without_pay_count,
               holidays: holiday_details_for_type(@employee, "leave_without_pay")
             }
-
+            max_allowed = Holiday::MAX_CASUAL_LEAVES + Holiday::MAX_SICK_LEAVES
+            taken = @employee.casual_leave_count.to_f + @employee.sick_leave_count.to_f + @employee.work_from_home_count.to_f + @employee.leave_without_pay_count.to_f
+            remaining = max_allowed.to_f - taken
             render json: {
               employee_name: @employee.name,
               casual_leave_details: casual_leave_details,
               sick_leave_details: sick_leave_details,
               work_from_home_details: work_from_home_details,
-              leave_without_pay_count_details: leave_without_pay_count_details
+              leave_without_pay_count_details: leave_without_pay_count_details,
+              max_allowed: max_allowed,
+              taken: taken,
+              remaining: remaining
             }
 
           else 
@@ -364,7 +370,7 @@ module Api
 
           holidays = Holiday.where("strftime('%Y', start_date) = ?", year).where.not(h_type: "Public")
 
-          if department.present?
+          if department.present? 
             department_id = Employee.departments[department]
             holidays = holidays.joins(:employee).where(employees: {department: department_id})
           end

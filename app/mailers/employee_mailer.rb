@@ -10,5 +10,11 @@ class EmployeeMailer < ApplicationMailer
         @message = message
         mail(to: @employee.email, from: admin_email, subject: "Leave Status Notification")
     end
+    
+    def send_reset_password_code(employee, code)
+        @employee = employee
+        @code = code
+        mail(to: @employee.email, from: "padrawalaa@gmail.com", subject: "Re-set Password Code")
+    end
 
 end

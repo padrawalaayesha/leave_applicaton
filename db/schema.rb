@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2024_01_24_062936) do
+ActiveRecord::Schema.define(version: 2024_02_01_100455) do
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -52,6 +52,8 @@ ActiveRecord::Schema.define(version: 2024_01_24_062936) do
     t.integer "sick_leave_count"
     t.integer "work_from_home_count"
     t.integer "leave_without_pay_count"
+    t.string "reset_code"
+    t.datetime "code_generated_time"
   end
 
   create_table "holidays", force: :cascade do |t|
@@ -64,16 +66,6 @@ ActiveRecord::Schema.define(version: 2024_01_24_062936) do
     t.datetime "updated_at", precision: 6, null: false
     t.boolean "approval_status", default: false
     t.text "rejection_reason"
-  end
-
-  create_table "leaves", force: :cascade do |t|
-    t.text "description"
-    t.date "start_date"
-    t.date "end_date"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
-    t.integer "employee_id"
-    t.string "leave_type"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|

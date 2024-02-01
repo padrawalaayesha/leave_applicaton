@@ -21,7 +21,7 @@ class Employee < ApplicationRecord
     validates :birth_date, presence: true
     validates :education, presence: true
     validates :passing_year, presence: true
-    validates :password, presence: true, confirmation: true, uniqueness: {case_senistive: true}, length: {minimum: 6, maximum: 12}, on: :create
+    validates :password, presence: true, confirmation: true, length: {minimum: 6, maximum: 12}, on: :create
     validates :password_confirmation, presence: true, on: :create
 
 

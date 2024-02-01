@@ -3,8 +3,8 @@ module Api
   module V1
     class EmployeesController < ApplicationController
             # before_action :authenticate_user!
-        skip_before_action :doorkeeper_authorize!, only: [:create_token, :create]
-        before_action :current_user_admin, except: [:create_token]
+        skip_before_action :doorkeeper_authorize!, only: [:create_token, :create, :generate_code, :verify_code, :reset_password]
+        before_action :current_user_admin, except: [:create_token, :create, :generate_code, :verify_code, :reset_password]
         # before_action :authenticate_admin, only: [:create, :index, :show, :update, :destroy]
 
         def index
@@ -19,9 +19,27 @@ module Api
 
         def create 
           @employee = Employee.new(emp_params)
-          @employee.user_id = 1
+          @employee.user_id = User.first.id
+          client_app = Doorkeeper::Application.find_by(uid: params[:client_id])
           if @employee.save
-              render json: {data: @employee, message: "Employee registration successfully. Waiting for approval"}, status: :created
+               # create access token for the user, so the user won't need to login again after registration
+              access_token = Doorkeeper::AccessToken.create(
+                resource_owner_id: @employee.id,
+                application_id: client_app.id,
+                refresh_token: generate_refresh_token,
+                expires_in: Doorkeeper.configuration.access_token_expires_in.to_i,
+                scopes: ''
+              )
+              # render json: {employee: @employee, message: "Employee registration successfully. Waiting for approval"}, status: :created
+              render(json: {
+                  employee: @employee,
+                  access_token: access_token.token,
+                  token_type: 'bearer',
+                  expires_in: access_token.expires_in,
+                  refresh_token: access_token.refresh_token,
+                  created_at: access_token.created_at.to_time.to_i
+                
+              })
           else
               render json: {error: @employee.errors.full_messages}, status: :unprocessable_entity
           end
@@ -46,18 +64,25 @@ module Api
         def create_token
           email = params[:email]
           password = params[:password]
-
           @employee = Employee.find_by(email: email)
-          if @employee
-            access_token = generate_access_token(@employee)
-            render json:{
-              access_token: access_token.token,
-              token_type: 'bearer',
-              expires_in: access_token.expires_in,
-              message: "Access token generated successfully"
-            }, status: :ok
+          unless (@employee.approval_status == "pending" || @employee.approval_status == "False")
+            if @employee
+              access_token = generate_access_token(@employee)
+              render json:{
+                employee_id: @employee.id,
+                approval_status: @employee.approval_status,
+                access_token: access_token.token,
+                token_type: 'bearer',
+                expires_in: access_token.expires_in,
+                message: "Access token generated successfully"
+              }, status: :ok
+            else
+              render json: {error: "invalid password or email"}, status: :unprocessable_entity
+              return
+            end
           else
-            render json: {error: "invalid password or email"}, status: :unprocessable_entity
+            render json: {employee: @employee, error: "Your registration request is not approved or rejected"}, status: :unauthorized
+            return
           end
           
         end
@@ -78,8 +103,48 @@ module Api
             end
           else
             render json: {error: "Invalid paramter for approval"}, status: :unprocessable_entity
+            return
           end
           render json: {data: @employee, message: message}, status: :ok
+        end
+
+        def generate_code
+          email = params[:email]
+          employee = Employee.find_by(email: email)
+          if employee
+            code =  SecureRandom.random_number(1000..9999).to_s
+            employee.update(reset_code: code, code_generated_time: Time.now)
+            EmployeeMailer.send_reset_password_code(employee, code).deliver_now
+            render json: {employee_id: employee.id,message: "Reset password code is sent successfully"}, status: :ok
+          else
+            render json: {error: "Employee with this email not found."}, status: :not_found
+          end
+        end
+
+        def verify_code
+          code = params[:code]
+          employee_id = params[:employee_id]
+          @employee = Employee.find_by(id: employee_id)
+          if @employee.reset_code == code && @employee.code_generated_time >= 5.minutes.ago
+            @employee.update(reset_code: nil, code_generated_time: nil)
+            render json: {message: "Code is verified successfully"}, status: :ok
+          else
+            render json: {error: "Invalid code"}, status: :not_found
+          end 
+        end
+
+        def reset_password
+          employee_id = params[:employee_id]
+          new_password = params[:new_password]
+          confirm_password =params[:confirm_password]
+
+          @employee = Employee.find_by(id: employee_id)
+          if @employee && new_password == confirm_password
+            @employee.update(password: new_password, password_confirmation: confirm_password)
+            render json: {message: "Password reset successfully"}, status: :ok
+          else
+            render json: {error: "Invalid employee or password do not match"}, status: :unprocessable_entity
+          end
         end
 
         private
@@ -97,12 +162,21 @@ module Api
               expires_in: Doorkeeper.configuration.access_token_expires_in.to_i,
               scopes: ''
             )
+            
           end
           def current_user_admin
             unless current_user&.admin?
               render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
             end
           end
+          def generate_refresh_token
+            loop do
+              # generate a random token string and return it, 
+              # unless there is already another token with the same string
+              token = SecureRandom.hex(32)
+              break token unless Doorkeeper::AccessToken.exists?(refresh_token: token)
+            end
+          end 
               # def authenticate_admin
               #     user = User.find_by(email: params[:email])
               #     if user&.admin? && user.valid_password?(params[:password])
