@@ -11,6 +11,7 @@ class Employee < ApplicationRecord
     attribute :leave_without_pay_count, default: 0
 
     enum department: {IT: 1, Sales: 2, HR: 3, Account: 4, Testing: 5, Admin: 6}
+    enum approval_status: {pending: 0, approved: 1, rejected: 2}
     validates :name , presence: true, length: {minimum: 3, maximum: 25}
     VALID_EMAIL_REGX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
     validates :email, presence: true, uniqueness: {case_sensitive: false}, format: {with: VALID_EMAIL_REGX} ,length: {maximum: 105}

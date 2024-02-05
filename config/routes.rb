@@ -7,11 +7,14 @@ Rails.application.routes.draw do
       resources :employees, only: [:index, :create, :show , :update, :destroy] do
         collection do
           post 'create_token', to: 'employees#create_token', as: 'create_token'
-          put 'approve/:employee_id', to: 'employees#approve_employee', as: 'approve_employee'
           post 'generate_code' , to: 'employees#generate_code', as: 'generate_code'
           post 'verify_code/:employee_id', to: 'employees#verify_code', as: 'verify_code'
           put 'reset_password/:employee_id', to: 'employees#reset_password', as: 'reset_password'
         end 
+        member do
+          put 'approve_employee', to: 'employees#approve_employee', as: 'approve_employee'
+          put 'reject_employee', to: 'employees#reject_employee', as: 'reject_employee'
+        end
       end
       post "users/sign_in", to: "users#sign_in"
       resources :holidays, only: [ :index, :show, :create] do

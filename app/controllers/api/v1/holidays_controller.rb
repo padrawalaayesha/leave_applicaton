@@ -278,7 +278,6 @@ module Api
       end
 
       def get_employee_leave_details
-      
         @employee = Employee.find_by(id: params[:employee_id])
         if @employee.present?
           if current_user.admin? || (current_user.id.to_s == params[:employee_id])

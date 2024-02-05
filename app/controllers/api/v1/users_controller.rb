@@ -4,13 +4,13 @@ module Api
       skip_before_action :doorkeeper_authorize!
   
       def sign_in
-        user = User.find_by(email: user_params[:email])
-  
+        user = User.find_by(email: params[:email])
+        
         client_app = Doorkeeper::Application.find_by(uid: params[:client_id])
   
         return render(json: { error: 'Invalid client ID'}, status: 403) unless client_app
-  
-        if user.present?
+
+        if user.present? && user&.valid_password?(params[:password])
           # create access token for the user, so the user won't need to login again after registration
           access_token = Doorkeeper::AccessToken.create(
             resource_owner_id: user.id,
@@ -40,9 +40,9 @@ module Api
   
       private
   
-      def user_params
-        params.require(:user).permit(:email, :password)
-      end
+      # def user_params
+      #   params.require(:user).permit(:email, :password)
+      # end
 
       def generate_refresh_token
         loop do
