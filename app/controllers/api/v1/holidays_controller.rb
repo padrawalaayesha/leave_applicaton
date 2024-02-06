@@ -363,6 +363,7 @@ module Api
           year = params[:year] 
           if params[:year].nil? || params[:year].blank?
             return render json: {error: "Year must be present"}, status: :unprocessable_entity
+            return
           end
           department = params[:department] 
           h_type = params[:h_type]
@@ -392,6 +393,43 @@ module Api
             details
           end
           render json: {data: leave_details}, status: :ok
+        else
+          render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
+        end
+      end
+
+      def get_leaves_filtered_count
+        if current_user.admin?
+          year = params[:year]
+          department = params[:department]
+          if year.blank? || department.blank?
+            return render json: {error: "Year and department must be present"}, status: :unprocessable_entity
+            return
+          end
+          department_id = Employee.departments[department]
+          employees_in_department = Employee.where(department: department_id)
+
+          sick_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(h_type: 'sick_leave', employee_id: employees_in_department.select(:id)).count
+
+          casual_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year)
+          .where(h_type: 'casual_leave', employee_id: employees_in_department.select(:id))
+          .count
+
+          work_from_home_count = Holiday.where("strftime('%Y', start_date) = ?", year)
+          .where(h_type: 'work_from_home', employee_id: employees_in_department.select(:id))
+          .count
+
+          leave_without_pay_count = Holiday.where("strftime('%Y', start_date) = ?", year)
+          .where(h_type: 'leave_without_pay', employee_id: employees_in_department.select(:id))
+          .count
+
+          render json: {
+            sick_leave_count: sick_leave_count,
+            casual_leave_count: casual_leave_count,
+            work_from_home_count: work_from_home_count,
+            leave_without_pay_count: leave_without_pay_count
+          }, status: :ok
+
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
         end

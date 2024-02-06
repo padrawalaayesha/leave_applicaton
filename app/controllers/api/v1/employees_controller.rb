@@ -95,42 +95,43 @@ module Api
         # end
 
         def approve_employee
-          @employee = Employee.find_by(id: params[:employee_id])
+          @employee = Employee.find_by(id: params[:id])
           admin_email = current_user.email
           if @employee.nil?
-            render json: {error: "Employee not found"}, status: :not_found
+            render json: {error: "Employee not found" ,status: :not_found}
             return
           end
           if @employee.approved? || @employee.rejected?
-            render json: {error: "Employee is already approved or rejected"}, status: :unprocessable_entity
+            render json: {error: "Employee is already approved or rejected" ,status: :unprocessable_entity}
             return
           end
           if @employee.update(approval_status: :approved)
             message = "Your registration request has been approved by the admin."
             EmployeeMailer.welcome_mail(@employee, admin_email).deliver_now
-            render json: {message: "Employee is approved successfully"}, status: :ok
+            render json: {message: "Employee is approved successfully" ,status: :ok}
           else
-            render json: {error: @employee.errors.full_messages}, status: :unprocessable_entity
+            render json: {message: @employee.errors.full_messages, status: :unprocessable_entity}
           end
         end
 
         def reject_employee
-          @employee = Employee.find_by(id: params[:employee_id])
+          
+          @employee = Employee.find_by(id: params[:id])
           admin_email = current_user.email
           if @employee.nil?
-            render json: {error: "Employee not found"}, status: :not_found
+            render json: {error: "Employee not found",status: :not_found}
             return
           end
           if @employee.approved? || @employee.rejected?
-            render json: {error: "Employee has already been approved or rejected"}, status: :unprocessable_entity
+            render json: {error: "Employee has already been approved or rejected" ,status: :unprocessable_entity}
             return
           end
           if @employee.update(approval_status: :rejected)
             message = "Your registration request has been rejected by the admin."
-            EmployeeMailer.welcome_mail(@employee, admin_email).deliver_now
-            render json: {message: "Employee has been rejected"}, status: :ok
+            EmployeeMailer.rejection_mail(@employee, admin_email).deliver_now
+            render json: {message: "Employee has been rejected", status: :ok}
           else
-            render json: {error: @employee.errors.full_messages}, status: :unprocessable_entity
+            render json: {message: @employee.errors.full_messages ,status: :unprocessable_entity}
           end
         end
 

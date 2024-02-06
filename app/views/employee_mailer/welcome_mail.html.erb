@@ -1,6 +1,5 @@
 <h1>Welcome to Company's Leave Portal</h1>
 <p>Dear <%= @employee.name %>,</p>
-<%if (@employee.approval_status == "True")%>
     <p>Your account has been created with the following details:</p>
     <p>Name: <%= @employee.name%></p>
     <p>Email: <%= @employee.email %></p>
@@ -12,8 +11,6 @@
     <p>Passing Year: <%= @employee.passing_year%></p>
     <p>Password: <%= @employee.password%></p>
     <p>Please login with these credentials whenever you are requesting for leave.</p>
-    <p>Thank you for joining our company.</p>
-<%else%>
-    <p>Your registration request has been rejected.</p>
-    <p>Thank you.</p>
-<%end%>     
+    <p>Thank you for registering.</p>
+
+  

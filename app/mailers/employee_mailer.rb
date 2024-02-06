@@ -4,6 +4,12 @@ class EmployeeMailer < ApplicationMailer
         mail(to: @employee.email, from: admin_email ,subject: "Welcome to Company's Leave Portal")
     end
 
+    def rejection_mail(employee, admin_email)
+        @employee = employee
+        @admin_email = admin_email
+        mail(to: @employee.email, from: @admin_email, subject: "Registration Rejection on Leave Portal")
+    end
+
     def leave_status_notification(employee, holiday, message, admin_email)
         @employee = employee
         @holiday = holiday
@@ -14,7 +20,7 @@ class EmployeeMailer < ApplicationMailer
     def send_reset_password_code(employee, code)
         @employee = employee
         @code = code
-        mail(to: @employee.email, from: "padrawalaa@gmail.com", subject: "Re-set Password Code")
+        mail(to: @employee.email, from: "lucycobra05@gmail.com", subject: "Re-set Password Code")
     end
 
 end
