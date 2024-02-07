@@ -59,8 +59,8 @@ module Api
           @holiday = current_user.holidays.new(holiday_params)
           @holiday.approval_status = nil
           @holiday.rejection_reason = nil
-          @holiday.document_holiday.attach(params[:holiday][:document_holiday]) if params[:holiday][:document_holiday].present?
-          if @holiday.valid?
+          # @holiday.document_holiday.attach(params[:holiday][:document_holiday]) if params[:holiday][:document_holiday].present?
+          @holiday.document_holiday.attach(params[:document_holiday]) unless params[:document_holiday] == "null"
             if @holiday.save
                 @num_of_days = (@holiday.end_date - @holiday.start_date).to_i
                 send_pending_notification_leave_mail(@employee, @holiday, @num_of_days)
@@ -68,9 +68,6 @@ module Api
             else
                 render json: {error: @holiday.errors.full_messages}, status: :unprocessable_entity
             end
-          else
-            render json: {error: @holiday.errors.full_messages}, status: :unprocessable_entity
-          end
         else
           render json: {error: "Only employees are allowed to create leave request"}, status: :unprocessable_entity 
         end
@@ -409,7 +406,9 @@ module Api
           department_id = Employee.departments[department]
           employees_in_department = Employee.where(department: department_id)
 
-          sick_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(h_type: 'sick_leave', employee_id: employees_in_department.select(:id)).count
+          sick_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year)
+          .where(h_type: 'sick_leave', employee_id: employees_in_department.select(:id))
+          .count
 
           casual_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year)
           .where(h_type: 'casual_leave', employee_id: employees_in_department.select(:id))

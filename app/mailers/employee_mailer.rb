@@ -20,7 +20,7 @@ class EmployeeMailer < ApplicationMailer
     def send_reset_password_code(employee, code)
         @employee = employee
         @code = code
-        mail(to: @employee.email, from: "lucycobra05@gmail.com", subject: "Re-set Password Code")
+        mail(to: @employee.email, from: "padrawalaa@gmail.com", subject: "Re-set Password Code")
     end
 
 end
