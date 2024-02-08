@@ -2,16 +2,30 @@ module Api
   module V1
     class HolidaysController < ApplicationController
 
+      before_action :current_user, only: :index
+
       def index
-        if current_user.admin?
-          @holidays = Holiday.where.not(h_type: "Public")
-          render json: {data: @holidays, message: "Holidays request from employees are fetched successfully"}, status: :ok
+        if @current_user.admin?
+          @holidays = Holiday.where(approval_status: nil).where.not(h_type: "Public")
+          holiday_details = @holidays.map do |holiday|
+            {
+              employee_id: holiday.employee.id,
+              holiday_id: holiday.id,
+              employee_name: holiday.employee.name,
+              department: holiday.employee.department,
+              h_type: holiday.h_type,
+              reason: holiday.description,
+              start_date: holiday.start_date,
+              end_date: holiday.end_date,
+              number_of_days: (holiday.end_date - holiday.start_date).to_i + 1
+            }
+          end
+          render json: {data: holiday_details, message: "Holidays request from employees are fetched successfully"}, status: :ok
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
         end
 
-      end
-
+      end     
       def show
         if current_user.admin?
           @holiday = Holiday.find_by_id(params[:id])
@@ -80,14 +94,32 @@ module Api
 
           if @holiday
             if @holiday.approval_status.nil?
-                handle_approval_admin
-                # decrement_leave_count if ((@holiday.approval_status == true) && (["casual_leave", "sick_leave"].include?(@holiday.h_type)))
+                approve_holiday_action
                 increment_leave_count if ((@holiday.approval_status == true) && (["casual_leave", "sick_leave","work_from_home", "leave_without_pay"].include?(@holiday.h_type)))
             else 
               render json: {error: "Leave request has already been approved/rejected"}, status: :unprocessable_entity
             end  
           else
-            render json: {error: @holiday.errors.full_messages}, status: :unprocessable_entity
+            render json: {error: "Holiday not found"}, status: :not_found
+          end
+        else
+          render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
+        end
+      end
+
+      def reject_holiday
+        if current_user.admin?
+          @employee = current_user.employees.find_by(id: params[:employee_id])
+          @holiday = @employee.holidays.find_by(id: params[:holiday_id])
+
+          if @holiday
+            if @holiday.approval_status.nil?
+                reject_holiday_action
+            else 
+              render json: {error: "Leave request has already been approved/rejected"}, status: :unprocessable_entity
+            end  
+          else
+            render json: {error: "Holiday not found"}, status: :not_found
           end
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
@@ -378,7 +410,7 @@ module Api
           leave_details = holidays.map do |holiday|
             details = {
               employee_name: holiday.employee.name,
-              depattment: holiday.employee.department,
+              department: holiday.employee.department,
               h_type: holiday.h_type,
               description: holiday.description,
               start_date: holiday.start_date,
@@ -401,24 +433,24 @@ module Api
           department = params[:department]
           if year.blank? || department.blank?
             return render json: {error: "Year and department must be present"}, status: :unprocessable_entity
-            return
+            return  
           end
           department_id = Employee.departments[department]
           employees_in_department = Employee.where(department: department_id)
 
-          sick_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year)
+          sick_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(approval_status: true)
           .where(h_type: 'sick_leave', employee_id: employees_in_department.select(:id))
           .count
 
-          casual_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year)
+          casual_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(approval_status: true)
           .where(h_type: 'casual_leave', employee_id: employees_in_department.select(:id))
           .count
 
-          work_from_home_count = Holiday.where("strftime('%Y', start_date) = ?", year)
+          work_from_home_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(approval_status: true)
           .where(h_type: 'work_from_home', employee_id: employees_in_department.select(:id))
           .count
 
-          leave_without_pay_count = Holiday.where("strftime('%Y', start_date) = ?", year)
+          leave_without_pay_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(approval_status: true)
           .where(h_type: 'leave_without_pay', employee_id: employees_in_department.select(:id))
           .count
 
@@ -444,22 +476,37 @@ module Api
         params.require(:holiday).permit(:h_type, :description, :start_date, :end_date, :employee_id, :approval_status, :rejection_reason, :document_holiday)
       end
 
-      def handle_approval_admin
-        if params[:approval_status] == true
-          @holiday.update(approval_status: true,rejection_reason: nil)
-          message = "Your leave has been accepted by admin" 
-          send_notification_leave_mail(@holiday.employee, @holiday,message)
+      # def handle_approval_admin
+      #   if params[:approval_status] == true
+      #     @holiday.update(approval_status: true,rejection_reason: nil)
+      #     message = "Your leave has been accepted by admin" 
+      #     send_notification_leave_mail(@holiday.employee, @holiday,message)
 
-        elsif params[:approval_status] == false
-          rejection_reason = params[:rejection_reason]
-          @holiday.update(approval_status: false, rejection_reason: params[:rejection_reason])
-          message = "Your leave has been rejected by admin. Rejection Reason: #{rejection_reason}"
-          send_notification_leave_mail(@holiday.employee, @holiday,message)
+      #   elsif params[:approval_status] == false
+      #     rejection_reason = params[:rejection_reason]
+      #     @holiday.update(approval_status: false, rejection_reason: params[:rejection_reason])
+      #     message = "Your leave has been rejected by admin. Rejection Reason: #{rejection_reason}"
+      #     send_notification_leave_mail(@holiday.employee, @holiday,message)
 
-        else
-          render json:{error: "Inavalid parameter for leave request"}, status: :unprocessable_entity
-        end
-        render json: {data: @holiday, message: message}, status: :ok
+      #   else
+      #     render json:{error: "Inavalid parameter for leave request"}, status: :unprocessable_entity
+      #   end
+      #   render json: {data: @holiday, message: message}, status: :ok
+      # end
+
+      def approve_holiday_action
+        @holiday.update(approval_status: true)
+        message = "Your leave request has been accepted by the admin"
+        send_notification_leave_mail(@holiday.employee,@holiday, message)
+        render json: {data: @holiday, message: "Holiday request is approved by the admin"}, status: :ok
+      end
+
+      def reject_holiday_action
+        rejection_reason = params[:rejection_reason]
+        @holiday.update(approval_status: true, rejection_reason: rejection_reason)
+        message = "Your leave request has been rejected by the admin"
+        send_notification_leave_mail(@holiday.employee, @holiday, message)
+        render json: {data: @holiday, message: "Holiday request is rejected by the admin"}, status: :ok
       end
 
       def calculate_num_of_days(start_date, end_date)
@@ -468,8 +515,6 @@ module Api
 
       def send_notification_leave_mail(employee, holiday, message)
         admin_email = "padrawalaa@gmail.com"
-        # num_of_days = calculate_num_of_days(holiday.start_date, holiday.end_date)
-        # message = "Number of days: #{num_of_days}.\n #{message}"
         EmployeeMailer.leave_status_notification(employee, holiday, message, admin_email).deliver_now
       end
 
