@@ -3,7 +3,7 @@ class Holiday < ApplicationRecord
     attribute :approval_status, :boolean, default: nil
 
     MAX_CASUAL_LEAVES = 10
-    MAX_SICK_LEAVES = 5
+    MAX_SICK_LEAVES = 6
 
     has_one_attached :document_holiday
 

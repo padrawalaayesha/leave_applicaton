@@ -26,7 +26,7 @@ Rails.application.routes.draw do
           get 'get_pending_leaves', to: 'holidays#get_pending_leaves', as: 'get_pending_leaves'
           get 'get_remaining_leaves', to: 'holidays#get_remaining_leaves', as: 'get_remaining_leaves'
           get 'get_employee_leave_details/:employee_id', to: 'holidays#get_employee_leave_details', as: 'get_employee_leave_details' 
-          get 'get_leave_details', to: 'holidays#get_leave_details', as: 'get_leave_details'
+          get 'get_leave_details_summary', to: 'holidays#get_leave_details_summary', as: 'get_leave_details_summary'
           get 'get_approved_holidays', to: 'holidays#get_approved_holidays', as: 'get_approved_holidays'
           get 'get_approved_leave_without_pay', to: 'holidays#get_approved_leave_without_pay', as: 'get_approved_leave_without_pay'
           get 'get_leave_history_for_employee', to: 'holidays#get_leave_history_for_employee', as: 'get_leave_history_for_employee'
@@ -34,6 +34,8 @@ Rails.application.routes.draw do
           get 'get_leaves_filtered_count', to: 'holidays#get_leaves_filtered_count', as: 'get_leaves_filtered_count'
           put 'approve_holiday/:employee_id/:holiday_id', to: 'holidays#approve_holiday', as: 'approve_holiday'
           put 'reject_holiday/:employee_id/:holiday_id', to: 'holidays#reject_holiday', as: 'reject_holiday'
+          get 'get_employee_leave_record_approved', to: 'holidays#get_employee_leave_record_approved', as: 'get_employee_leave_record_approved'
+          get 'get_employee_leave_record_rejected', to: 'holidays#get_employee_leave_record_rejected', as: 'get_employee_leave_record_rejected'
         end
       end
     end
