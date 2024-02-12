@@ -1,13 +1,13 @@
 class Holiday < ApplicationRecord
     belongs_to :employee, optional: true
-    attribute :approval_status, :boolean, default: nil
-
+    
     MAX_CASUAL_LEAVES = 10
     MAX_SICK_LEAVES = 6
 
     has_one_attached :document_holiday
 
-    HOLIDAY_TYPES = ["casual_leave", "sick_leave", "work_from_home", "leave_without_pay"]
+    enum approval_status: { pending: 0, approved: 1, rejected: 2, approved_as_lwp: 3}
+    HOLIDAY_TYPES = ["casual_leave", "sick_leave", "work_from_home", "leave_without_pay", "Public"]
 
     validates :h_type, presence: true, inclusion: {in: HOLIDAY_TYPES}
     validates :description , presence: true
@@ -30,7 +30,7 @@ class Holiday < ApplicationRecord
     end
     
     
-    def approved?
-        approval_status == true
-    end
+    # def approved?
+    #     approval_status == true
+    # end
 end

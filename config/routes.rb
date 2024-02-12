@@ -18,7 +18,7 @@ Rails.application.routes.draw do
         end
       end
       post "users/sign_in", to: "users#sign_in"
-      resources :holidays, only: [:index, :show, :create] do
+      resources :holidays do
         collection do
           get 'index_for_employee/:employee_id', to: 'holidays#index_for_employee', as: 'index_for_employee'
           post 'upload_public_holiday', to: 'holidays#upload_public_holiday', as: 'upload_public_holiday'
@@ -33,6 +33,7 @@ Rails.application.routes.draw do
           get 'get_leave_details_filtered', to: 'holidays#get_leave_details_filtered', as: 'get_leave_details_filtered'
           get 'get_leaves_filtered_count', to: 'holidays#get_leaves_filtered_count', as: 'get_leaves_filtered_count'
           put 'approve_holiday/:employee_id/:holiday_id', to: 'holidays#approve_holiday', as: 'approve_holiday'
+          put 'approve_holiday_as_lwp/:employee_id/:holiday_id', to: 'holidays#approve_holiday_as_lwp', as: 'approve_holiday_as_lwp'
           put 'reject_holiday/:employee_id/:holiday_id', to: 'holidays#reject_holiday', as: 'reject_holiday'
           get 'get_employee_leave_record_approved', to: 'holidays#get_employee_leave_record_approved', as: 'get_employee_leave_record_approved'
           get 'get_employee_leave_record_rejected', to: 'holidays#get_employee_leave_record_rejected', as: 'get_employee_leave_record_rejected'
