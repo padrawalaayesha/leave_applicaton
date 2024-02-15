@@ -37,6 +37,8 @@ Rails.application.routes.draw do
           put 'reject_holiday/:employee_id/:holiday_id', to: 'holidays#reject_holiday', as: 'reject_holiday'
           get 'get_employee_leave_record_approved', to: 'holidays#get_employee_leave_record_approved', as: 'get_employee_leave_record_approved'
           get 'get_employee_leave_record_rejected', to: 'holidays#get_employee_leave_record_rejected', as: 'get_employee_leave_record_rejected'
+          get 'get_employee_approval_status', to: 'holidays#get_employee_approval_status', as: 'get_employee_approval_status'
+          get 'get_employee_sick_leave_approved', to: 'holidays#get_employee_sick_leave_approved', as: 'get_employee_sick_leave_approved'
         end
       end
     end

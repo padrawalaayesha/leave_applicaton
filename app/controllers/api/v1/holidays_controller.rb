@@ -17,7 +17,7 @@ module Api
               reason: holiday.description,
               start_date: holiday.start_date,
               end_date: holiday.end_date,
-              number_of_days: (holiday.end_date - holiday.start_date).to_i + 1,
+              number_of_days: holiday.number_of_days,
               document_attached: holiday.document_holiday.attached?,
               document_url: holiday.document_holiday.attached? ? url_for(holiday.document_holiday) : nil
             }
@@ -76,13 +76,20 @@ module Api
           @holiday.approval_status = nil
           @holiday.rejection_reason = nil
           @holiday.approval_status = :pending
+          @holiday.number_of_days = (@holiday.end_date - @holiday.start_date).to_i + 1
+          max_sl = Holiday::MAX_SICK_LEAVES
+          max_cl = Holiday::MAX_CASUAL_LEAVES
           year = Time.now.year
           # @holiday.document_holiday.attach(params[:holiday][:document_holiday]) if params[:holiday][:document_holiday].present?
           @holiday.document_holiday.attach(params[:holiday][:document_holiday]) unless params[:holiday][:document_holiday] == "null"
             if @holiday.start_date.year == year && @holiday.end_date.year == year
-              @holiday.save
-              send_pending_notification_leave_mail(@employee, @holiday)
-              render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
+              if (@holiday.h_type == "sick_leave" && @holiday.number_of_days > max_sl) || (@holiday.h_type == "casual_leave" && @holiday.number_of_days > max_cl)
+                render json: {message: "Only a maximum of #{max_sl} days of sick leave or #{max_cl} days of casual leave is allowed",h_type: @holiday.h_type}, status: :ok
+              else
+                @holiday.save
+                send_pending_notification_leave_mail(@employee, @holiday)
+                render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
+              end
             else
                 render json: {error: "The year when you apply should be same as current year"}, status: :unprocessable_entity
             end
@@ -403,13 +410,30 @@ module Api
             },
           } 
 
-          render json: leave_details, status: :ok 
+          total_count_sick_casual = holidays.where(h_type: "casual_leave", approval_status: :approved).count + holidays.where(h_type: "sick_leave", approval_status: :approved).count
+          allowed_sick_casual = Holiday::MAX_SICK_LEAVES + Holiday::MAX_CASUAL_LEAVES
+          remaining_sick_casual = allowed_sick_casual - total_count_sick_casual
+
+          render json: {leave_details: leave_details, total: total_count_sick_casual, allowed: allowed_sick_casual, remaining: remaining_sick_casual}, status: :ok 
 
           else 
             render json: {error: "You are not authorized to perform this action"}, status: :not_found
           end
         else
           render json: {error: "Employee not found "}, status: :unprocessable_entity
+        end
+      end
+
+      def get_employee_approval_status
+        employee = current_user
+        year = Time.now.year.to_s
+        if employee
+          holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year)
+          approved_pending_holidays = holidays.where(approval_status: ["pending","approved"])
+
+          render json: {approved_pending_holidays: approved_pending_holidays}, status: :ok
+        else
+          render json: {error: "Employee not found"}, status: :not_found
         end
       end
 
@@ -539,6 +563,29 @@ module Api
             }, status: :ok
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
+        end
+      end
+
+      def get_employee_sick_leave_approved
+        if current_user.admin?
+          department = params[:department]
+          employee_name = params[:employee_name]
+          year = params[:year]
+    
+          if department.blank? || employee_name.blank? || year.blank?
+            render json: {error: "Department, name, and year must be present"}, status: :unprocessable_entity
+          end
+
+          employee = Employee.find_by(name: employee_name, department: department)
+          if employee.nil?
+            render json: { error: "Employee not found" }, status: :not_found
+            return
+          end
+
+          holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year).where(approval_status: "approved", h_type: "sick_leave")
+          render json: {sick_leave_record: holidays}, status: :ok
+        else
+          render json: {error: "You are not authorized to perform this action"}, status: :unauthorized
         end
       end
       

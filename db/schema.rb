@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2024_02_12_105334) do
+ActiveRecord::Schema.define(version: 2024_02_15_121311) do
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -66,6 +66,7 @@ ActiveRecord::Schema.define(version: 2024_02_12_105334) do
     t.datetime "updated_at", precision: 6, null: false
     t.integer "approval_status", default: 0
     t.text "rejection_reason"
+    t.integer "number_of_days"
   end
 
   create_table "oauth_access_grants", force: :cascade do |t|
