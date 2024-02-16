@@ -138,6 +138,7 @@ module Api
           if @employee.update(approval_status: :rejected)
             message = "Your registration request has been rejected by the admin."
             EmployeeMailer.rejection_mail(@employee, admin_email).deliver_now
+            @employee.destroy
             render json: {message: "Employee has been rejected", status: :ok}
           else
             render json: {message: @employee.errors.full_messages ,status: :unprocessable_entity}

@@ -25,8 +25,15 @@ class Holiday < ApplicationRecord
     end
 
     def validate_max_leave_count_for_type(max_leave_count)
-        existing_leaves_count = employee.holidays.where(h_type: h_type, approval_status: true).count
-        errors.add(:base, "Maximum #{h_type.humanize} exceeded") if existing_leaves_count >= max_leave_count
+        year = Time.now.year
+        holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year.to_s)
+        existing_leaves_count = holidays.where(h_type: h_type, approval_status: :approved).sum(:number_of_days)
+        remaining_leaves = [0, max_leave_count - existing_leaves_count].max
+        byebug
+        if number_of_days > remaining_leaves
+          errors.add(:base, "Only a maximum of #{max_leave_count} days of #{h_type.humanize} is allowed. You have #{remaining_leaves} remaining days.") 
+          return
+        end
     end
     
     

@@ -39,6 +39,8 @@ Rails.application.routes.draw do
           get 'get_employee_leave_record_rejected', to: 'holidays#get_employee_leave_record_rejected', as: 'get_employee_leave_record_rejected'
           get 'get_employee_approval_status', to: 'holidays#get_employee_approval_status', as: 'get_employee_approval_status'
           get 'get_employee_sick_leave_approved', to: 'holidays#get_employee_sick_leave_approved', as: 'get_employee_sick_leave_approved'
+          get 'employee_leave_history_pending', to: 'holidays#employee_leave_history_pending', as: 'employee_leave_history_pending'
+          get 'employee_leave_history_approved', to: 'holidays#employee_leave_history_approved', as: 'employee_leave_history_approved'
         end
       end
     end
