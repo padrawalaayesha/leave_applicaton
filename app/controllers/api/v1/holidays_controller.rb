@@ -77,10 +77,10 @@ module Api
           @holiday.rejection_reason = nil
           @holiday.approval_status = :pending
           @holiday.number_of_days = (@holiday.end_date - @holiday.start_date).to_i + 1
-          year = Time.now.year
+          date = Time.now
           # @holiday.document_holiday.attach(params[:holiday][:document_holiday]) if params[:holiday][:document_holiday].present?
           @holiday.document_holiday.attach(params[:holiday][:document_holiday]) unless params[:holiday][:document_holiday] == "null"
-            if @holiday.start_date.year == year && @holiday.end_date.year == year
+            if @holiday.start_date >= date && @holiday.end_date >= date
               if @holiday.save
                 send_pending_notification_leave_mail(@employee, @holiday)
                 render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
@@ -446,13 +446,30 @@ module Api
             render json: { error: "Employee not found" }, status: :not_found
             return
           end  
-      
-          holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year) 
-      
-          casual_leave_count = holidays.where(h_type: "casual_leave", approval_status: :approved).sum(:number_of_days)
-          sick_leave_count = holidays.where(h_type: "sick_leave", approval_status: :approved).sum(:number_of_days)
-          work_from_home_count = holidays.where(h_type: "work_from_home", approval_status: :approved).sum { |holiday| (holiday.end_date - holiday.start_date).to_i + 1 }
-          leave_without_pay_count = holidays.where(approval_status: :approved_as_lwp).sum(:number_of_days)
+          holidays = employee.holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
+          holidays = holidays.where(approval_status: "approved")
+          
+          casual_leave_count = 0
+          sick_leave_count = 0
+          work_from_home_count = 0
+          leave_without_pay_count =0
+          year = year.to_i
+          holidays.each do |holiday|
+            start_date_within_year = [holiday.start_date, Date.new(year, 1, 1)].max
+            end_date_within_year = [holiday.end_date, Date.new(year, 12, 31)].min
+            leave_days_within_year = (end_date_within_year - start_date_within_year).to_i + 1
+
+            case holiday.h_type
+            when "casual_leave"
+              casual_leave_count += leave_days_within_year
+            when "sick_leave"
+              sick_leave_count += leave_days_within_year
+            when "work_from_home"
+              work_from_home_count += (end_date_within_year - start_date_within_year).to_i + 1
+            when "leave_without_pay"
+              leave_without_pay_count += leave_days_within_year
+            end
+        end
       
           leave_details = {
             employee_name: employee.name,
