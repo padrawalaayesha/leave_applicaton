@@ -74,7 +74,7 @@ module Api
         def employees_in_department
           department = params[:department]
           if Employee.departments.keys.include?(department)
-            employees = Employee.where(department: department).pluck(:name)
+            employees = Employee.where(department: department)
             render json: {employees: employees, message: "Employees in #{department} department are fetched"}, status: :ok
           else
             render json: {error: "#{department} department is not present"}

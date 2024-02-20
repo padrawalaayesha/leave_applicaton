@@ -374,13 +374,28 @@ module Api
         if employee.present?
           if current_user.admin? || (current_user.id.to_s == params[:employee_id])
             
-            holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year)
-
-            casual_leave_count = holidays.where(h_type: "casual_leave", approval_status: :approved).sum(:number_of_days)
-            sick_leave_count = holidays.where(h_type: "sick_leave", approval_status: :approved).sum(:number_of_days)
-            work_from_home_count = holidays.where(h_type: "work_from_home", approval_status: :approved).sum { |holiday| (holiday.start_date - holiday.end_date).to_i + 1 }
-            leave_without_pay_count = holidays.where(approval_status: :approved).sum(:number_of_days)
-
+            holidays = employee.holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
+            holidays = holidays.where(approval_status: "approved")
+            
+            casual_leave_count = 0
+            sick_leave_count = 0
+            work_from_home_count = 0
+            leave_without_pay_count =0
+            year = year.to_i
+            holidays.each do |holiday|
+              leave_days_within_year = holiday.counting_days_in_year[year]
+        
+              case holiday.h_type
+              when "casual_leave"
+                casual_leave_count += leave_days_within_year.to_i if leave_days_within_year.present?
+              when "sick_leave"
+                sick_leave_count += leave_days_within_year.to_i if leave_days_within_year.present?
+              when "work_from_home"
+                work_from_home_count += leave_days_within_year.to_i if leave_days_within_year.present?
+              when "leave_without_pay"
+                leave_without_pay_count += leave_days_within_year.to_i if leave_days_within_year.present?
+              end
+            end
             leave_details = {
             employee_name: employee.name,
             casual_leave_details: {
@@ -404,7 +419,7 @@ module Api
             },
           } 
 
-          total_count_sick_casual = holidays.where(h_type: "casual_leave", approval_status: :approved).count + holidays.where(h_type: "sick_leave", approval_status: :approved).count
+          total_count_sick_casual = casual_leave_count + sick_leave_count
           allowed_sick_casual = Holiday::MAX_SICK_LEAVES + Holiday::MAX_CASUAL_LEAVES
           remaining_sick_casual = allowed_sick_casual - total_count_sick_casual
 
@@ -436,16 +451,17 @@ module Api
           department = params[:department]
           employee_name = params[:employee_name]
           year = params[:year]
-          if department.blank? || employee_name.blank? || year.blank?
+          if year.blank?
             render json: { error: "Department, name, and year must be present" }, status: :unprocessable_entity
             return    
           end
       
-          employee = Employee.find_by(name: employee_name, department: department)
+          employee = Employee.find_by(id: params[:employee_id])
           if employee.nil?
             render json: { error: "Employee not found" }, status: :not_found
             return
           end  
+          
           holidays = employee.holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
           holidays = holidays.where(approval_status: "approved")
           
@@ -455,21 +471,19 @@ module Api
           leave_without_pay_count =0
           year = year.to_i
           holidays.each do |holiday|
-            start_date_within_year = [holiday.start_date, Date.new(year, 1, 1)].max
-            end_date_within_year = [holiday.end_date, Date.new(year, 12, 31)].min
-            leave_days_within_year = (end_date_within_year - start_date_within_year).to_i + 1
-
+            leave_days_within_year = holiday.counting_days_in_year[year]
+      
             case holiday.h_type
             when "casual_leave"
-              casual_leave_count += leave_days_within_year
+              casual_leave_count += leave_days_within_year.to_i if leave_days_within_year.present?
             when "sick_leave"
-              sick_leave_count += leave_days_within_year
+              sick_leave_count += leave_days_within_year.to_i if leave_days_within_year.present?
             when "work_from_home"
-              work_from_home_count += (end_date_within_year - start_date_within_year).to_i + 1
+              work_from_home_count += leave_days_within_year.to_i if leave_days_within_year.present?
             when "leave_without_pay"
-              leave_without_pay_count += leave_days_within_year
+              leave_without_pay_count += leave_days_within_year.to_i if leave_days_within_year.present?
             end
-        end
+          end
       
           leave_details = {
             employee_name: employee.name,
@@ -500,135 +514,54 @@ module Api
         end
       end
       
-      def get_employee_leave_record_approved
-        if @current_user.admin?
-          department = params[:department]
-          employee_name = params[:employee_name]
-          year = params[:year]
-
-          if department.blank? || employee_name.blank? || year.blank?
-            render json: { error: "Department, name, and year must be present" }, status: :unprocessable_entity
-            return    
-          end
-      
-          employee = Employee.find_by(name: employee_name, department: department)
-          if employee.nil?
-            render json: { error: "Employee not found" }, status: :not_found
-            return
-          end
-
-          holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year).where(approval_status: :approved) 
- 
-          leave_record = holidays.map do |holiday|
-            {
-              holiday_type: holiday.h_type,
-              description: holiday.description,
-              start_date: holiday.start_date,
-              end_date: holiday.end_date,
-              number_of_days: holiday.number_of_days,
-              holiday_id: holiday.id
-            }
-          end
-          render json: {
-              employee_name: employee.name,
-              leave_record: leave_record
-            }, status: :ok
-        else
-          render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
-        end
-      end
 
       def get_employee_leave_record_rejected
         if current_user.admin?
-          department = params[:department]
-          employee_name = params[:employee_name]
           year = params[:year]
-
-          if department.blank? || employee_name.blank? || year.blank?
+          if year.blank?
             render json: { error: "Department, name, and year must be present" }, status: :unprocessable_entity
             return    
           end
-      
-          employee = Employee.find_by(name: employee_name, department: department)
-          if employee.nil?
-            render json: { error: "Employee not found" }, status: :not_found
-            return
-          end
-
-          holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year).where(approval_status: :rejected) 
-
-          leave_record = holidays.map do |holiday|
-            {
-              holiday_type: holiday.h_type,
-              description: holiday.description,
-              start_date: holiday.start_date,
-              end_date: holiday.end_date,
-              number_of_days: holiday.number_of_days,
-              holiday_id: holiday.id,
-              rejection_reason: holiday.rejection_reason
-            }
-          end
-          render json: {
-              employee_name: employee.name,
-              leave_record: leave_record
-            }, status: :ok
+          holidays = Holiday.rejected
+          holidays = holidays.where(employee_id: params[:employee_id])
+          holidays = holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
+          render json: { rejected_holidays: holidays}, status: :ok
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
         end
       end
 
-      def get_employee_sick_leave_approved
-        if current_user.admin?
-          department = params[:department]
-          employee_name = params[:employee_name]
-          year = params[:year]
-    
-          if department.blank? || employee_name.blank? || year.blank?
-            render json: {error: "Department, name, and year must be present"}, status: :unprocessable_entity
-          end
 
-          employee = Employee.find_by(name: employee_name, department: department)
-          if employee.nil?
-            render json: { error: "Employee not found" }, status: :not_found
-            return
-          end
-
-          holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year).where(approval_status: "approved", h_type: "sick_leave")
-          render json: {sick_leave_record: holidays}, status: :ok
-        else
-          render json: {error: "You are not authorized to perform this action"}, status: :unauthorized
-        end
-      end
       
 
       def get_leave_details_filtered
         if current_user.admin?
-          employee_name = params[:employee_name]
-          year = params[:year] 
-          department = params[:department] 
-          h_type = params[:h_type]
-          if employee_name.blank? || year.blank? || department.blank? || h_type.blank?
-            return render json: {error: "Name, department, year and h_type must be present"}, status: :unprocessable_entity
-            return
+          year = params[:year]
+          if params[:h_type].present?
+            case params[:h_type]
+            when "casual_leave"
+              holidays = Holiday.casual_leave
+              
+            when "sick_leave"
+              holidays = Holiday.sick_leave
+              
+            when "work_from_home"
+              holidays = Holiday.work_from_home
+              
+            when "leave_without_pay"
+              holidays = Holiday.leave_without_pay
+            else
+              holidays = Holiday.all
+            end
+            holidays = holidays.where(employee_id: params[:employee_id])
+            holidays = holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
+            render json: { holidays: holidays}, status: :ok
+          else
+            holidays = Holiday.all
+            holidays = holidays.where(employee_id: params[:employee_id])
+            holidays = holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
+            render json: { holidays: holidays}, status: :ok
           end
-          employee = Employee.find_by(name: employee_name, department: department)
-          if employee.nil?
-            render json: {error: "Employee_not_found"}, status: :not_found
-          end
-          holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year).where(approval_status: :approved).where(h_type: h_type) 
-          
-          leave_details = holidays.map do |holiday|
-            {
-              employee_name: holiday.employee.name,
-              department: holiday.employee.department,
-              h_type: holiday.h_type,
-              description: holiday.description,
-              start_date: holiday.start_date,
-              end_date: holiday.end_date,
-              number_of_days: holiday.number_of_days
-            }
-          end
-          render json: {data: leave_details}, status: :ok
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
         end

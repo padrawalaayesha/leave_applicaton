@@ -15,6 +15,14 @@ class Holiday < ApplicationRecord
     validates :end_date, presence: true
     validate :validate_max_leave_count, on: :create
 
+    
+    scope :casual_leave, -> { where(h_type: "casual_leave", approval_status: "approved") }
+    scope :sick_leave, -> { where(h_type: "sick_leave", approval_status: "approved")}
+    scope :work_from_home, -> { where(h_type: "work_from_home", approval_status: "approved") }
+    scope :leave_without_pay, -> { where(h_type: "leave_without_pay", approval_status: "approved") }
+
+    scope :rejected , -> { where(approval_status: "rejected")}
+
     def validate_max_leave_count
         case h_type
         when "casual_leave"
@@ -49,6 +57,15 @@ class Holiday < ApplicationRecord
                 errors.add(:base, "Only a maximum of #{max_leave_count} days of #{h_type.humanize} is allowed for #{year}. You have exceeded the maximum leave count for #{year}.")
             end
         end
+    end
+
+    def counting_days_in_year
+        dates_array = (start_date..end_date).to_a
+        dates_count = Hash.new(0)
+        dates_array.each do |date|
+            dates_count[date.year] += 1
+        end
+        dates_count
     end
     
       
