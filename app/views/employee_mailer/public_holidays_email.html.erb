@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      color: #333333;
+    }
+
+    /* Container Styles */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Heading Styles */
+    h1 {
+      color: #007bff; /* Blue color for emphasis */
+      text-align: center;
+      margin-top: 0;
+    }
+
+    /* Paragraph Styles */
+    p {
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    /* Public Holidays Styles */
+    .holiday {
+      background-color: #f0f0f0;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    .holiday strong {
+      color: #333333;
+    }
+
+    /* Signature Styles */
+    .signature {
+      margin-top: 20px;
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* Customized Styles */
+    .holiday-description {
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    .holiday-date {
+      font-style: italic;
+    }
+
+    /* Responsive Styles */
+    @media screen and (max-width: 600px) {
+      .container {
+        width: 90%;
+        margin: 10px auto;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Public Holidays Information</h1>
+    
+    <% @public_holidays.each do |holiday| %>
+      <div class="holiday">
+        <p class="holiday-description"><%= holiday.description %></p>
+        <p class="holiday-date">
+          <strong>Day:</strong> <%= holiday.start_date.strftime("%A") %> |
+          <strong>Date:</strong> <%= holiday.start_date.strftime("%B %d, %Y") %>
+        </p>
+      </div>
+    <% end %>
+    
+    <div class="signature">
+      <p>Regards,<br>
+      Soft Coding Solutions</p>
+    </div>
+  </div>
+</body>
+</html>

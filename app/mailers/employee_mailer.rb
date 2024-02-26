@@ -23,4 +23,10 @@ class EmployeeMailer < ApplicationMailer
         mail(to: @employee.email, from: "padrawalaa@gmail.com", subject: "Re-set Password Code")
     end
 
+    def public_holidays_email(employee, public_holidays)
+        @employee = employee
+        @public_holidays = public_holiday
+        mail(to: @employee.email, subject: "Public Holidays Information")
+    end
+
 end

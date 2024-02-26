@@ -8,7 +8,7 @@ module Api
         # before_action :authenticate_admin, only: [:create, :index, :show, :update, :destroy]
 
         def index
-          @employees = Employee.all
+          @employees = Employee.where(approval_status: "pending")
           render json: {data: @employees, message: "Employees are fetched successfully"}, status: :ok 
         end
 

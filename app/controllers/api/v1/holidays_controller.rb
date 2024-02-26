@@ -78,10 +78,10 @@ module Api
           @holiday.approval_status = :pending
           @holiday.number_of_days = (@holiday.end_date - @holiday.start_date).to_i + 1
           date = Time.now
-          # @holiday.document_holiday.attach(params[:holiday][:document_holiday]) if params[:holiday][:document_holiday].present?
-          @holiday.document_holiday.attach(params[:holiday][:document_holiday]) unless params[:holiday][:document_holiday] == "null"
-            if @holiday.start_date >= date && @holiday.end_date >= date
-              if @holiday.save
+          # @holiday.document_holiday.attach(params[:holiday][:document_holiday]) unless params[:holiday][:document_holiday] == "null"
+          if @holiday.start_date >= date && @holiday.end_date >= date
+            if @holiday.save
+                @holiday.document_holiday.attach(params[:document_holiday]) if params[:document_holiday].present?
                 send_pending_notification_leave_mail(@employee, @holiday)
                 render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
               else
@@ -122,7 +122,7 @@ module Api
           if @holiday
             if @holiday.approval_status == "pending"
               approve_lwp_action
-              increment_leave_count if ((@holiday.approval_status == "approved_as_lwp") && (["casual_leave", "sick_leave","work_from_home", "leave_without_pay"].include?(@holiday.h_type)))
+              
             else
               render json: {message: "You have already approved/rejected this leave request"}, status: :unprocessable_entity
             end
@@ -183,6 +183,25 @@ module Api
             }
           end
           render json: {data: public_holidays_with_name, message: "Public Holidays list has been fetched successfully"}, status: :ok
+      end
+
+      def send_public_holiday
+        year = Time.now.year.to_s
+        holidays = Holiday.where("strftime('%Y', start_date) = ?", year)
+        public_holidays = holidays.where(h_type: "Public").order(:start_date)
+        if public_holidays.any?
+          approved_employees = Employee.where(approval_status: "approved")
+          if approved_employees.any?
+            approved_employees.each do |employee|
+              EmployeeMailer.public_holidays_email(employee, public_holidays).deliver_now
+            end
+            render json: {message: "Email sent to the employees successfully"}, status: :ok
+          else
+            render json: {message: "There are no employees present"}, status: :not_found
+          end
+        else
+          render json: {message: "There are no public holidays availabel"}, status: :not_found
+        end
       end
 
       def update
@@ -361,10 +380,18 @@ module Api
       def employee_leave_history_approved
         @holidays = current_user.holidays
         @approved_holidays = @holidays.where(approval_status: "approved")
-        if @approved_holidays
-          render json: {approved_leaves: @approved_holidays}, status: :ok
+        year = params[:year].to_s
+        binding.pry
+        if year.present?
+          @approved_holidays_year = @approved_holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
+          render json: {approved_holidays_year: @approved_holidays_year}, status: :ok
+          return
         else
-          render json: {message: "#{current_user.name} does not have any approved leaves"}, status: :not_found
+          if @approved_holidays
+            render json: {approved_leaves: @approved_holidays}, status: :ok
+          else
+            render json: {message: "#{current_user.name} does not have any approved leaves"}, status: :not_found
+          end
         end
       end
 
@@ -439,8 +466,11 @@ module Api
         if employee
           holidays = employee.holidays.where("strftime('%Y', start_date) = ?", year)
           approved_pending_holidays = holidays.where(approval_status: ["pending","approved"])
-
-          render json: {approved_pending_holidays: approved_pending_holidays}, status: :ok
+          p_holidays = Holiday.where("strftime('%Y', start_date) = ?", year)
+          public_holidays = p_holidays.where(h_type: "Public")
+          render json: {approved_pending_holidays: approved_pending_holidays,
+            public_holidays: public_holidays
+            }, status: :ok
         else
           render json: {error: "Employee not found"}, status: :not_found
         end
@@ -613,7 +643,7 @@ module Api
       end
 
       def holiday_params
-        params.require(:holiday).permit(:h_type, :description, :start_date, :end_date, :employee_id, :approval_status, :rejection_reason, :document_holiday)
+        params.require(:holiday).permit(:h_type, :description, :start_date, :end_date, :employee_id, :approval_status, :rejection_reason)
       end
 
       # def handle_approval_admin
