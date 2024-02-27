@@ -41,6 +41,8 @@ Rails.application.routes.draw do
           get 'get_employee_sick_leave_approved', to: 'holidays#get_employee_sick_leave_approved', as: 'get_employee_sick_leave_approved'
           get 'employee_leave_history_pending', to: 'holidays#employee_leave_history_pending', as: 'employee_leave_history_pending'
           get 'employee_leave_history_approved', to: 'holidays#employee_leave_history_approved', as: 'employee_leave_history_approved'
+          delete 'public_holidays_destroy', to: 'holidays#public_holidays_destroy', as: 'public_holidays_destroy'
+          post 'send_public_holiday', to: 'holidays#send_public_holiday', as: 'send_public_holiday'
         end
       end
     end

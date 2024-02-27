@@ -1,9 +1,77 @@
-<h1>Registration Rejection</h1>
-<p>Hello <%=@employee.name%>,</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration Rejection</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Container Styles */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Heading Styles */
+    h1 {
+      color: #dc3545; /* Red color for emphasis */
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Paragraph Styles */
+    p {
+      color: #555555;
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    /* Email Link Styles */
+    a {
+      color: #007bff; /* Blue color for links */
+      text-decoration: none;
+    }
+
+    /* Signature Styles */
+    .signature {
+      font-style: italic;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    /* Responsive Styles */
+    @media screen and (max-width: 600px) {
+      .container {
+        width: 90%;
+        margin: 10px auto;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Registration Rejection</h1>
+    <p>Hello <%= @employee.name %>,</p>
     <p>We regret to inform you that your registration request for the leave portal has been rejected.</p>
-
     <p>We appreciate your interest in accessing our leave portal. However, after careful consideration, we have determined that we are unable to approve your registration at this time.</p>
-
-    <p>If you have any questions or require further assistance, please feel free to contact our support team at <%=@admin_email%> .</p>
-
+    <p>If you have any questions or require further assistance, please feel free to contact our support team at <a href="mailto:<%= @admin_email %>"><%= @admin_email %></a>.</p>
     <p>Thank you for your understanding.</p>
+    <div class="signature">
+      <p>Sincerely,</p>
+      <p>Soft Coding Solutions</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -162,7 +162,7 @@ module Api
           code = params[:code]
           employee_id = params[:employee_id]
           @employee = Employee.find_by(id: employee_id)
-          if @employee.reset_code == code && @employee.code_generated_time >= 5.minutes.ago
+          if @employee.reset_code == code && @employee.code_generated_time >= 2.minutes.ago
             @employee.update(reset_code: nil, code_generated_time: nil)
             render json: {message: "Code is verified successfully"}, status: :ok
           else

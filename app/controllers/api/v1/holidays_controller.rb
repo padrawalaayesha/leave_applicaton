@@ -233,6 +233,19 @@ module Api
         end
       end
 
+      def public_holidays_destroy
+        if current_user.admin?
+          year = params[:year].to_s
+          holidays =  holidays = Holiday.where("strftime('%Y', start_date) = ?", year)
+          public_holidays = holidays.where(h_type: "Public").order(:start_date)
+          public_holidays.destroy_all
+          render json: {message: "All public holidays of #{year} are deleted successfully"}, status: :ok
+        else
+          render json: {error: "You are not authorrized to perform this action"}, status: :unauthorized
+        end
+
+      end
+
       def get_pending_leaves
         if current_user.admin?
           # @pending_leaves_count = Holiday.where(approval_status: nil).where.not(employee_id: nil).group(:employee_id).count
