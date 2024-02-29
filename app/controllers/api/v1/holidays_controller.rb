@@ -236,12 +236,17 @@ module Api
       def public_holidays_destroy
         if current_user.admin?
           year = params[:year].to_s
-          holidays =  holidays = Holiday.where("strftime('%Y', start_date) = ?", year)
-          public_holidays = holidays.where(h_type: "Public").order(:start_date)
-          public_holidays.destroy_all
-          render json: {message: "All public holidays of #{year} are deleted successfully"}, status: :ok
+          
+          if year.present?
+            holidays =  holidays = Holiday.where("strftime('%Y', start_date) = ?", year)
+            public_holidays = holidays.where(h_type: "Public").order(:start_date)
+            public_holidays.destroy_all
+            render json: {message: "All public holidays of #{year} are deleted successfully", status: :ok}
+          else
+            render json: {message: "Year must be present", status: :unprocessable_entity}
+          end
         else
-          render json: {error: "You are not authorrized to perform this action"}, status: :unauthorized
+          render json: {error: "You are not authorrized to perform this action", status: :unauthorized}
         end
 
       end
@@ -387,17 +392,17 @@ module Api
           render json: {pending: @pending_leaves}, status: :ok
         else
           render json: {message: "#{current_user.name} does not any leaves that are pending"}, status: :not_found
-        end
+        end     
       end
 
       def employee_leave_history_approved
         @holidays = current_user.holidays
-        @approved_holidays = @holidays.where(approval_status: "approved")
+        @approved_holidays = @holidays.where(approval_status: "approved").order(start_date: :desc)
         year = params[:year].to_s
-        binding.pry
+
         if year.present?
           @approved_holidays_year = @approved_holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
-          render json: {approved_holidays_year: @approved_holidays_year}, status: :ok
+          render json: {approved_leaves: @approved_holidays_year}, status: :ok
           return
         else
           if @approved_holidays
@@ -574,9 +579,6 @@ module Api
         end
       end
 
-
-      
-
       def get_leave_details_filtered
         if current_user.admin?
           year = params[:year]
@@ -619,31 +621,35 @@ module Api
             return  
           end
           department_id = Employee.departments[department]
-          employees_in_department = Employee.where(department: department_id)
+          employees = Employee.where(department: department_id)
 
-          sick_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(approval_status: :approved)
-          .where(h_type: 'sick_leave', employee_id: employees_in_department.select(:id))
-          .count
+          leave_counts = {
+            casual_leave_count: 0,
+            sick_leave_count: 0,
+            work_from_home_count: 0,
+            leave_without_pay_count: 0
+          }
+          employees.each do |employee| 
+            holidays = employee.holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
+            holidays = holidays.where(approval_status: "approved")
+            year = year.to_i
+            holidays.each do |holiday|
+              leave_days_within_year = holiday.counting_days_in_year[year]
 
-          casual_leave_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(approval_status: :approved)
-          .where(h_type: 'casual_leave', employee_id: employees_in_department.select(:id))
-          .count
+              case holiday.h_type
+              when "sick_leave"
+                leave_counts[:sick_leave_count] += leave_days_within_year.to_i if leave_days_within_year.present?
+              when "casual_leave"
+                leave_counts[:casual_leave_count] += leave_days_within_year.to_i if leave_days_within_year.present?
+              when "work_from_home"
+                leave_counts[:work_from_home_count] += leave_days_within_year.to_i if leave_days_within_year.present?
+              when "leave_without_pay"
+                leave_counts[:leave_without_pay_count] += leave_days_within_year.to_i if leave_days_within_year.present?
+              end
+            end
+          end
 
-          work_from_home_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(approval_status: :approved)
-          .where(h_type: 'work_from_home', employee_id: employees_in_department.select(:id))
-          .count
-
-          leave_without_pay_count = Holiday.where("strftime('%Y', start_date) = ?", year).where(approval_status: :approved)
-          .where(h_type: 'leave_without_pay', employee_id: employees_in_department.select(:id))
-          .count
-
-          render json: {
-            sick_leave_count: sick_leave_count,
-            casual_leave_count: casual_leave_count,
-            work_from_home_count: work_from_home_count,
-            leave_without_pay_count: leave_without_pay_count
-          }, status: :ok
-
+          render json: {counts: leave_counts}, status: :ok
         else
           render json: {error: "You are not authorized to perform this action"}, status: :unprocessable_entity
         end

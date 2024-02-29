@@ -14,7 +14,7 @@
 
     /* Container Styles */
     .container {
-      max-width: 600px;
+      max-width: 800px;
       margin: 20px auto;
       padding: 20px;
       background-color: #ffffff;
@@ -29,22 +29,27 @@
       margin-top: 0;
     }
 
-    /* Paragraph Styles */
-    p {
-      margin-bottom: 10px;
-      line-height: 1.6;
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      border: 1px solid #dddddd; /* Added border for the table */
     }
 
-    /* Public Holidays Styles */
-    .holiday {
-      background-color: #f0f0f0;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
+    th, td {
+      padding: 12px;
+      border: 1px solid #dddddd;
+      text-align: left;
     }
 
-    .holiday strong {
-      color: #333333;
+    th {
+      background-color: #f0f0f0; /* Light gray background for header */
+    }
+
+    /* Alternate row color */
+    tbody tr:nth-child(even) {
+      background-color: #f9f9f9; /* Lighter background for even rows */
     }
 
     /* Signature Styles */
@@ -53,41 +58,31 @@
       font-style: italic;
       text-align: center;
     }
-
-    /* Customized Styles */
-    .holiday-description {
-      font-weight: bold;
-      color: #007bff;
-    }
-
-    .holiday-date {
-      font-style: italic;
-    }
-
-    /* Responsive Styles */
-    @media screen and (max-width: 600px) {
-      .container {
-        width: 90%;
-        margin: 10px auto;
-        padding: 10px;
-      }
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Public Holidays Information</h1>
-    
-    <% @public_holidays.each do |holiday| %>
-      <div class="holiday">
-        <p class="holiday-description"><%= holiday.description %></p>
-        <p class="holiday-date">
-          <strong>Day:</strong> <%= holiday.start_date.strftime("%A") %> |
-          <strong>Date:</strong> <%= holiday.start_date.strftime("%B %d, %Y") %>
-        </p>
-      </div>
-    <% end %>
-    
+
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Day</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @public_holidays.each do |holiday| %>
+          <tr>
+            <td><%= holiday.description %></td>
+            <td><%= holiday.start_date.strftime("%A") %></td>
+            <td><%= holiday.start_date.strftime("%B %d, %Y") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
     <div class="signature">
       <p>Regards,<br>
       Soft Coding Solutions</p>

@@ -6,7 +6,7 @@
     /* Global Styles */
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #f9f9f9;
+      background-color: #ff7f50; /* Exciting orange background color */
       margin: 0;
       padding: 0;
       color: #333333;
@@ -17,7 +17,7 @@
       max-width: 600px;
       margin: 20px auto;
       padding: 20px;
-      background-color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.8); /* Added a slight transparent white background */
       border-radius: 8px;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     }
@@ -39,8 +39,14 @@
     /* Status Styles */
     .status {
       font-weight: bold;
-      color: #28a745; /* Green color for positive status */
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: white; /* Text color for status messages */
     }
+
+    .pending { background-color: #ffc107; } /* Yellow background for pending status */
+    .approved { background-color: #28a745; } /* Green background for approved status */
+    .rejected { background-color: #dc3545; } /* Red background for rejected status */
 
     /* Signature Styles */
     .signature {
@@ -65,19 +71,13 @@
       padding: 10px;
       border-radius: 8px;
     }
-    
-    /* Rounded Corners for Status Span */
-    .status {
-      padding: 5px 10px;
-      border-radius: 5px;
-      background-color: #e6ffe6; /* Light green background */
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Leave Status Notification</h1>
     <p>Dear <%= @employee.name %>,</p>
+    <p>We hope this email finds you in good spirits and excellent health.</p>
     <% if @holiday.present? %>
       <div class="highlight"> <!-- Added highlight class -->
         <p>Regarding your leave request: <%= @holiday.description %></p>
@@ -87,8 +87,18 @@
     <% else %>
       <p>Regarding your leave request: [No holiday information]</p>
     <% end %>
-    <p>Status: <span class="status"><%= @message %></span></p> <!-- Added rounded corners for status span -->
-    <p>Thank you.</p>
+    <% if @holiday.present? %>
+      <% case @holiday.approval_status %>
+        <% when "pending" %>
+          <p>Status: <span class="status pending">Pending</span></p>
+        <% when "approved" %>
+          <p>Status: <span class="status approved">Approved</span></p>
+        <% when "rejected" %>
+          <p>Status: <span class="status rejected">Rejected</span></p>
+      <% end %>
+    <% end %>
+    <p>We understand the importance of your time off and aim to process leave requests promptly. If you have any further questions or need assistance, please feel free to reach out to our HR department.</p>
+    <p>Thank you for your cooperation and understanding.</p>
     <div class="signature">
       <p>Best regards,<br>
       Soft Coding Solutions</p>

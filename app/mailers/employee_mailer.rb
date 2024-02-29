@@ -25,7 +25,7 @@ class EmployeeMailer < ApplicationMailer
 
     def public_holidays_email(employee, public_holidays)
         @employee = employee
-        @public_holidays = public_holiday
+        @public_holidays = public_holidays
         mail(to: @employee.email, subject: "Public Holidays Information")
     end
 
