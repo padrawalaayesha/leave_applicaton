@@ -11,7 +11,7 @@ class Holiday < ApplicationRecord
 
     validates :h_type, presence: true, inclusion: {in: HOLIDAY_TYPES}
     validates :description , presence: true
-    validates :start_date, presence: true
+    validates :start_date, presence: true  
     validates :end_date, presence: true
     validate :validate_max_leave_count, on: :create
 
@@ -55,18 +55,21 @@ class Holiday < ApplicationRecord
                 errors.add(:base, "Only a maximum of #{max_leave_count} days of #{h_type.humanize} is allowed for #{year}. You have #{remaining_leaves} remaining days.") 
             elsif year != start_year && number_of_days > max_leave_count
                 errors.add(:base, "Only a maximum of #{max_leave_count} days of #{h_type.humanize} is allowed for #{year}. You have exceeded the maximum leave count for #{year}.")
-            end
+            end     
         end
     end
 
     def counting_days_in_year
-        dates_array = (start_date..end_date).to_a
-        dates_count = Hash.new(0)
-        dates_array.each do |date|
+       dates_array = (start_date..end_date).to_a
+       dates_count = Hash.new(0)
+       dates_array.each do |date|
+          unless date.saturday? || date.sunday?
             dates_count[date.year] += 1
+          end
         end
         dates_count
     end
+      
     
       
     

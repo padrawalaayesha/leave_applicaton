@@ -76,11 +76,13 @@ module Api
           @holiday.approval_status = nil
           @holiday.rejection_reason = nil
           @holiday.approval_status = :pending
-          @holiday.number_of_days = (@holiday.end_date - @holiday.start_date).to_i + 1
+          @holiday.number_of_days = count_working_days(@holiday.start_date, @holiday.end_date)
+          
           date = Time.now
           # @holiday.document_holiday.attach(params[:holiday][:document_holiday]) unless params[:holiday][:document_holiday] == "null"
           if @holiday.start_date >= date && @holiday.end_date >= date
             if @holiday.save
+                binding.pry
                 @holiday.document_holiday.attach(params[:document_holiday]) if params[:document_holiday].present?
                 send_pending_notification_leave_mail(@employee, @holiday)
                 render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
@@ -122,7 +124,6 @@ module Api
           if @holiday
             if @holiday.approval_status == "pending"
               approve_lwp_action
-              
             else
               render json: {message: "You have already approved/rejected this leave request"}, status: :unprocessable_entity
             end
@@ -622,7 +623,7 @@ module Api
           end
           department_id = Employee.departments[department]
           employees = Employee.where(department: department_id)
-
+          
           leave_counts = {
             casual_leave_count: 0,
             sick_leave_count: 0,
@@ -630,6 +631,7 @@ module Api
             leave_without_pay_count: 0
           }
           employees.each do |employee| 
+            year = year.to_s
             holidays = employee.holidays.where("(strftime('%Y', start_date) = ? OR strftime('%Y', end_date) = ?) AND start_date <= ? AND end_date >= ? AND (start_date >= ? OR end_date <= ?)", year, year, "#{year}-12-31", "#{year}-01-01", "#{year}-01-01", "#{year}-12-31")
             holidays = holidays.where(approval_status: "approved")
             year = year.to_i
@@ -691,7 +693,7 @@ module Api
       end
 
       def approve_lwp_action
-        @holiday.update(approval_status: :approved_as_lwp)
+        @holiday.update(approval_status: :approved_as_lwp, h_type: "leave_without_pay")
         message = "Your leave request has been accepted as leave without pay by the admin"
         send_notification_leave_mail(@holiday.employee,@holiday, message)
         render json: {data: @holiday, message: "Holiday request is approved by the admin"}, status: :ok
@@ -751,7 +753,19 @@ module Api
         else
           return [max_allowed_leaves - approved_leave_count, 0].max
         end
-      end      
+      end 
+      
+      def count_working_days(start_date, end_date)
+        current_date = start_date
+        count = 0
+        while current_date <= end_date
+          unless current_date.saturday? || current_date.sunday?
+            count += 1
+          end
+          current_date += 1.day
+        end
+        count
+      end
 
       # def increment_leave_count
       #   case @holiday.h_type

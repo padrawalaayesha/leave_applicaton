@@ -6,10 +6,10 @@
     /* Global Styles */
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #ff7f50; /* Exciting orange background color */
+      background-color: #f0e5e1; /* Pastel pink background color */
       margin: 0;
       padding: 0;
-      color: #333333;
+      color: #6d6875; /* Pastel purple color for text */
     }
 
     /* Container Styles */
@@ -17,14 +17,14 @@
       max-width: 600px;
       margin: 20px auto;
       padding: 20px;
-      background-color: rgba(255, 255, 255, 0.8); /* Added a slight transparent white background */
+      background-color: #fdf6f6; /* Pastel pink background color */
       border-radius: 8px;
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     }
 
     /* Heading Styles */
     h1 {
-      color: #007bff; /* Blue color for emphasis */
+      color: #6d6875; /* Pastel purple color for emphasis */
       text-align: center;
       margin-top: 0;
       margin-bottom: 20px; /* Added spacing below heading */
@@ -34,6 +34,7 @@
     p {
       margin-bottom: 10px;
       line-height: 1.6;
+      color: #6d6875; /* Pastel purple color for paragraphs */
     }
 
     /* Status Styles */
@@ -41,18 +42,19 @@
       font-weight: bold;
       padding: 5px 10px;
       border-radius: 5px;
-      color: white; /* Text color for status messages */
+      color: #030637; /* Text color for status messages */
     }
 
-    .pending { background-color: #ffc107; } /* Yellow background for pending status */
-    .approved { background-color: #28a745; } /* Green background for approved status */
-    .rejected { background-color: #dc3545; } /* Red background for rejected status */
+    .pending { background-color: #fed9d9; } /* Pastel red background for pending status */
+    .approved { background-color: #7eff7e; } /* Pastel green background for approved status */
+    .rejected { background-color: #f8e9a1; } /* Pastel yellow background for rejected status */
 
     /* Signature Styles */
     .signature {
       margin-top: 20px;
       font-style: italic;
       text-align: center;
+      color: #6d6875; /* Pastel purple color for signature */
     }
 
     /* Responsive Styles */
@@ -67,7 +69,7 @@
     /* Additional Styles */
     /* Highlighted Background for Paragraphs */
     .highlight {
-      background-color: #f0f8ff; /* Light blue background */
+      background-color: #fdf6f6; /* Pastel pink background color */
       padding: 10px;
       border-radius: 8px;
     }
@@ -75,33 +77,39 @@
 </head>
 <body>
   <div class="container">
-    <h1>Leave Status Notification</h1>
-    <p>Dear <%= @employee.name %>,</p>
-    <p>We hope this email finds you in good spirits and excellent health.</p>
+    <h1>Leave Status Notification 🌟</h1>
+    <p>Dear <%= @employee.name %> 🎉,</p>
+    <p>We hope this email finds you in good spirits and excellent health 🌸.</p>
     <% if @holiday.present? %>
       <div class="highlight"> <!-- Added highlight class -->
-        <p>Regarding your leave request: <%= @holiday.description %></p>
-        <p>From: <%= @holiday.start_date %>&nbsp; To: <%= @holiday.end_date %></p>
-        <p>Number of days: <%=(@holiday.end_date - @holiday.start_date).to_i + 1%></p>
+        <p>Regarding your leave request: <%= @holiday.description %> 📅</p>
+        <p>From: <%= @holiday.start_date %>&nbsp; To: <%= @holiday.end_date %> 🕒</p>
+        <p>Number of days: <%= @holiday.number_of_days%> 🌞</p>
       </div>
     <% else %>
-      <p>Regarding your leave request: [No holiday information]</p>
+      <p>Regarding your leave request: [No holiday information] 🚫</p>
     <% end %>
     <% if @holiday.present? %>
       <% case @holiday.approval_status %>
         <% when "pending" %>
-          <p>Status: <span class="status pending">Pending</span></p>
+          <p>Status: <span class="status pending">Pending ⏳</span></p>
         <% when "approved" %>
-          <p>Status: <span class="status approved">Approved</span></p>
+          <p>Status: <span class="status approved">Approved ✔️</span></p>
         <% when "rejected" %>
-          <p>Status: <span class="status rejected">Rejected</span></p>
+          <p>Status: <span class="status rejected">Rejected ❌</span></p>
+          <% if @message.present? %>
+            <p><strong>Message:</strong> <%= @message %></p><br/>
+            <p><strong>Rejection Reason:</strong> <%= @holiday.rejection_reason %></p>
+          <% end %>
+        <% when "approved_as_lwp"%>
+          <p>Status: <span class="status approved">Approved as LWP ✔️</span></p>
       <% end %>
     <% end %>
-    <p>We understand the importance of your time off and aim to process leave requests promptly. If you have any further questions or need assistance, please feel free to reach out to our HR department.</p>
-    <p>Thank you for your cooperation and understanding.</p>
+    <p>We understand the importance of your time off and aim to process leave requests promptly. If you have any further questions or need assistance, please feel free to reach out to our HR department 📞.</p>
+    <p>Thank you for your cooperation and understanding 🙏.</p>
     <div class="signature">
       <p>Best regards,<br>
-      Soft Coding Solutions</p>
+      Soft Coding Solutions 💼</p>
     </div>
   </div>
 </body>

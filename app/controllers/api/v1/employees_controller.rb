@@ -21,12 +21,16 @@ module Api
           @employee = Employee.new(emp_params)
           @employee.user_id = User.first.id
           client_app = Doorkeeper::Application.find_by(uid: params[:client_id])
-          if @employee.save
-               # create access token for the user, so the user won't need to login again after registration
-              access_token = generate_access_token(@employee, client_app)
-              render_employee_with_token(@employee, access_token)
+          if client_app
+            if @employee.save
+                # create access token for the user, so the user won't need to login again after registration
+                access_token = generate_access_token(@employee, client_app)
+                render_employee_with_token(@employee, access_token)
+            else
+                render json: {error: @employee.errors.full_messages}, status: :unprocessable_entity
+            end
           else
-              render json: {error: @employee.errors.full_messages}, status: :unprocessable_entity
+            render json: {error: "No client app found"}, status: :unprocessable_entity
           end
         end 
 
@@ -81,28 +85,6 @@ module Api
           end
         end
 
-
-        # def approve_employee
-        #   @employee = current_user.employees.find_by(id: params[:employee_id])
-        #   admin_email = current_user.email
-        #   byebug
-        #   if (@employee.approval_status == "pending")
-        #     if(params[:approval_status] == "True")
-        #       @employee.update(approval_status: "True")
-        #       message = "Your registration request has been approved by the admin."
-        #       EmployeeMailer.welcome_mail(@employee, admin_email).deliver_now
-        #     else (params[:approval_status] == "False")
-        #       @employee.update(approval_status: "False")
-        #       message = "Your registration request has been rejected by the admin."
-        #       EmployeeMailer.welcome_mail(@employee, admin_email).deliver_now
-        #     end
-        #   else
-        #     render json: {error: "Invalid paramter for approval"}, status: :unprocessable_entity
-        #     return
-        #   end
-        #   render json: {data: @employee, message: message}, status: :ok
-        # end
-
         def approve_employee
           @employee = Employee.find_by(id: params[:id])
           admin_email = current_user.email
@@ -124,7 +106,6 @@ module Api
         end
 
         def reject_employee
-          
           @employee = Employee.find_by(id: params[:id])
           admin_email = current_user.email
           if @employee.nil?
@@ -136,7 +117,6 @@ module Api
             return
           end
           if @employee.update(approval_status: :rejected)
-            message = "Your registration request has been rejected by the admin."
             EmployeeMailer.rejection_mail(@employee, admin_email).deliver_now
             @employee.destroy
             render json: {message: "Employee has been rejected", status: :ok}

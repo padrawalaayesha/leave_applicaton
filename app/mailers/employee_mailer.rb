@@ -7,7 +7,7 @@ class EmployeeMailer < ApplicationMailer
     def rejection_mail(employee, admin_email)
         @employee = employee
         @admin_email = admin_email
-        mail(to: @employee.email, from: @admin_email, subject: "Registration Rejection on Leave Portal")
+        mail(to: @employee.email, from: @admin_email, subject: "Notification: Leave Portal Registration Rejection")
     end
 
     def leave_status_notification(employee, holiday, message, admin_email)

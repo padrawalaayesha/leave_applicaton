@@ -8,9 +8,10 @@
     /* Global Styles */
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #f7f7f7;
+      background-color: #f9e4d9; /* Pastel pink background color */
       margin: 0;
       padding: 0;
+      color: #4d4d4d; /* Dark gray text color */
     }
 
     /* Container Styles */
@@ -18,28 +19,27 @@
       max-width: 600px;
       margin: 20px auto;
       padding: 20px;
-      background-color: #ffffff;
+      background-color: #f7d2c4; /* Vintage peach background color */
       border-radius: 8px;
       box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
     }
 
     /* Heading Styles */
     h1 {
-      color: #dc3545; /* Red color for emphasis */
+      color: #916953; /* Vintage brown color for emphasis */
       text-align: center;
       margin-bottom: 20px;
     }
 
     /* Paragraph Styles */
     p {
-      color: #555555;
       margin-bottom: 10px;
       line-height: 1.6;
     }
 
     /* Email Link Styles */
     a {
-      color: #007bff; /* Blue color for links */
+      color: #6e94a8; /* Soft blue color for links */
       text-decoration: none;
     }
 
@@ -62,12 +62,12 @@
 </head>
 <body>
   <div class="container">
-    <h1>Registration Rejection</h1>
-    <p>Hello <%= @employee.name %>,</p>
+    <h1>Update on Your Registration Request</h1>
+    <p>Dear <%= @employee.name %> 👋,</p>
     <p>We regret to inform you that your registration request for the leave portal has been rejected.</p>
-    <p>We appreciate your interest in accessing our leave portal. However, after careful consideration, we have determined that we are unable to approve your registration at this time.</p>
-    <p>If you have any questions or require further assistance, please feel free to contact our support team at <a href="mailto:<%= @admin_email %>"><%= @admin_email %></a>.</p>
-    <p>Thank you for your understanding.</p>
+    <p>While we appreciate your interest in accessing our leave portal, we regret to inform you that we are unable to approve your registration at this time. We understand that this news may be disappointing, and we apologize for any inconvenience caused.</p>
+    <p>If you have any questions or require further assistance, please do not hesitate to contact our support team at <a href="mailto:<%= @admin_email %>"><%= @admin_email %></a>.</p>
+    <p>Thank you for your understanding and cooperation. 🙏</p>
     <div class="signature">
       <p>Sincerely,</p>
       <p>Soft Coding Solutions</p>
