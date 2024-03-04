@@ -82,7 +82,6 @@ module Api
           # @holiday.document_holiday.attach(params[:holiday][:document_holiday]) unless params[:holiday][:document_holiday] == "null"
           if @holiday.start_date >= date && @holiday.end_date >= date
             if @holiday.save
-                binding.pry
                 @holiday.document_holiday.attach(params[:document_holiday]) if params[:document_holiday].present?
                 send_pending_notification_leave_mail(@employee, @holiday)
                 render json: {data: @holiday, message: "Holiday is created successfully"}, status: :created
