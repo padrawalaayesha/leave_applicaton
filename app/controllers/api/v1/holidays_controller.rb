@@ -414,6 +414,7 @@ module Api
       end
 
       def get_employee_leave_details
+        
         employee = Employee.find_by(id: params[:employee_id])
         year = Time.now.year.to_s
         if employee.present?
@@ -535,6 +536,8 @@ module Api
       
           leave_details = {
             employee_name: employee.name,
+            designation: employee.designation,
+            department: employee.department,
             casual_leave_details: {
               max_allowed: Holiday::MAX_CASUAL_LEAVES,
               taken: casual_leave_count ,
@@ -685,14 +688,19 @@ module Api
       # end
 
       def approve_holiday_action
-        @holiday.update(approval_status: :approved)
+        @holiday.update(approval_status: :approved, sandwich_weekend: params[:sandwich_weekend])
+        number_of_days = @holiday.counting_days_in_year
+        @holiday.update(number_of_days: number_of_days)
+        
         message = "Your leave request has been accepted by the admin"
         send_notification_leave_mail(@holiday.employee,@holiday, message)
         render json: {data: @holiday, message: "Holiday request is approved by the admin"}, status: :ok
       end
 
       def approve_lwp_action
-        @holiday.update(approval_status: :approved_as_lwp, h_type: "leave_without_pay")
+        @holiday.update(approval_status: :approved_as_lwp, h_type: "leave_without_pay" )
+        number_of_days = @holiday.counting_days_in_year
+        @holiday.update(number_of_days: number_of_days)
         message = "Your leave request has been accepted as leave without pay by the admin"
         send_notification_leave_mail(@holiday.employee,@holiday, message)
         render json: {data: @holiday, message: "Holiday request is approved by the admin"}, status: :ok

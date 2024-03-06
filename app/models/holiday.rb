@@ -11,8 +11,8 @@ class Holiday < ApplicationRecord
 
     validates :h_type, presence: true, inclusion: {in: HOLIDAY_TYPES}
     validates :description , presence: true
-    validates :start_date, presence: true  
-    validates :end_date, presence: true
+    validates :start_date, presence: true , uniqueness: { scope: :employee_id, message: "has already been taken" }
+    validates :end_date, presence: true, uniqueness: { scope: :employee_id, message: "has already been taken" }
     validate :validate_max_leave_count, on: :create
 
     
@@ -59,16 +59,24 @@ class Holiday < ApplicationRecord
         end
     end
 
-    def counting_days_in_year
+    def counting_days_in_year  
        dates_array = (start_date..end_date).to_a
        dates_count = Hash.new(0)
-       dates_array.each do |date|
-          unless date.saturday? || date.sunday?
-            dates_count[date.year] += 1
-          end
+       if sandwich_weekend == false
+            dates_array.each do |date|
+                unless date.saturday? || date.sunday?
+                    dates_count[date.year] += 1
+                end
+            end
+        else
+            dates_array.each do |date|
+                dates_count[date.year] += 1
+            end
         end
         dates_count
     end
+
+
       
     
       
