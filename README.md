@@ -27,4 +27,5 @@ Things you may want to cover:
 <p>Regarding your leave request: <%=@holiday.description%></br>from: <%=@holiday.start_date%>&nbsp; to:<%=@holiday.end_date%></p>
 <p>Status: <%= @message %></p>
 <p>Thank you.</p>        
-    
+
+

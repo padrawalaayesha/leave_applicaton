@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fde2e4; /* Pastel pink background color */
+      margin: 0;
+      padding: 0;
+      color: #6d6875; /* Pastel purple color for text */
+    }
+
+    /* Container Styles */
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fdf6f6; /* Pastel pink background color */
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Heading Styles */
+    h1 {
+      color: #ff7a5a; /* Pastel red color for emphasis */
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px; /* Added spacing below heading */
+    }
+
+    /* Paragraph Styles */
+    p {
+      margin-bottom: 10px;
+      line-height: 1.6;
+      color: #6d6875; /* Pastel purple color for paragraphs */
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      border: 2px solid #ff7a5a; /* Pastel red border for the table */
+    }
+
+    th, td {
+      padding: 15px;
+      border: 2px solid #ff7a5a; /* Pastel red border for table cells */
+      text-align: left;
+    }
+
+    th {
+      background-color: #F3D7CA; /* Light pastel red background for header */
+      color: #6d6875; /* Pastel purple color for header text */
+      font-weight: bold;
+    }
+
+    /* Alternate row color */
+    tbody tr:nth-child(even) {
+      background-color: #F3D7CA; /* Lighter pastel red background for even rows */
+    }
+
+    /* Description Styles */
+    .description {
+      color: #E6A4B4; /* Pastel red color for description text */
+    }
+
+    /* Date Styles */
+    .date {
+      color: #E6A4B4; /* Pastel red color for date text */
+    }
+
+    /* Signature Styles */
+    .signature {
+      margin-top: 20px;
+      font-style: italic;
+      text-align: center;
+      color: #6d6875; /* Pastel purple color for signature */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎉 Exciting Public Holidays Announcement 🎉</h1>
+
+    <p>Dear Employee, 🌟</p>
+
+    <p>We're thrilled to share with you the upcoming public holidays! Take advantage of these wonderful opportunities to relax, spend time with loved ones, and create lasting memories. Below is the list of holidays: 📅</p>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Day</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @public_holidays.each do |holiday| %>
+          <tr>
+            <td class="description"><%= holiday.description %></td>
+            <td><%= holiday.start_date.strftime("%A") %></td>
+            <td class="date"><%= holiday.start_date.strftime("%B %d, %Y") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <p>Make sure to plan ahead and make the most out of these holidays! 🎉</p>
+
+    <div class="signature">
+      <p>Best Regards,<br>
+      Soft Coding Solutions</p>
+    </div>
+  </div>
+</body>
+</html>

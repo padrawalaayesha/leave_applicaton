@@ -1,19 +1,94 @@
-<h1>Welcome to Company's Leave Portal</h1>
-<p>Dear <%= @employee.name %>,</p>
-<%if (@employee.approval_status == "True")%>
-    <p>Your account has been created with the following details:</p>
-    <p>Name: <%= @employee.name%></p>
-    <p>Email: <%= @employee.email %></p>
-    <p>Department: <%= @employee.department%></p>
-    <p>Designation: <%= @employee.designation%></p>
-    <p>Education: <%= @employee.education%></p>
-    <p>Date of Joining: <%= @employee.date_of_joining%></p>
-    <p>Birth Date: <%= @employee.birth_date%></p>
-    <p>Passing Year: <%= @employee.passing_year%></p>
-    <p>Password: <%= @employee.password%></p>
-    <p>Please login with these credentials whenever you are requesting for leave.</p>
-    <p>Thank you for joining our company.</p>
-<%else%>
-    <p>Your registration request has been rejected.</p>
-    <p>Thank you.</p>
-<%end%>     
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Company's Leave Portal</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fde2e4; /* Soft pastel pink background */
+      margin: 0;
+      padding: 0;
+      color: #7f7f7f; /* Light gray text color */
+    }
+
+    /* Container Styles */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #f7f7f7; /* Off-white container background */
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Heading Styles */
+    h1 {
+      color: #94716b; /* Soft pastel brown color for emphasis */
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Paragraph Styles */
+    p {
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+
+    /* List Styles */
+    ul {
+      margin-bottom: 10px;
+      padding-left: 20px;
+    }
+
+    /* List Item Styles */
+    li {
+      margin-bottom: 5px;
+    }
+
+    /* Signature Styles */
+    .signature {
+      font-style: italic;
+      text-align: center;
+      margin-top: 20px;
+      color: #a9a9a9; /* Light gray signature color */
+    }
+
+    /* Responsive Styles */
+    @media screen and (max-width: 600px) {
+      .container {
+        width: 90%;
+        margin: 10px auto;
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to Company's Leave Portal</h1>
+    <p>Dear <%= @employee.name %> 👋,</p>
+    <p>Welcome to our company's leave portal! We're excited to have you on board.</p>
+    <p>Your account has been successfully created with the following details:</p>
+    <ul>
+      <li><strong>Name:</strong> <%= @employee.name %></li>
+      <li><strong>Email:</strong> <%= @employee.email %></li>
+      <li><strong>Department:</strong> <%= @employee.department %></li>
+      <li><strong>Designation:</strong> <%= @employee.designation %></li>
+      <li><strong>Education:</strong> <%= @employee.education %></li>
+      <li><strong>Date of Joining:</strong> <%= @employee.date_of_joining %> 📅</li>
+      <li><strong>Birth Date:</strong> <%= @employee.birth_date %> 🎂</li>
+      <li><strong>Passing Year:</strong> <%= @employee.passing_year %> 🎓</li>
+      <li><strong>Password:</strong> <%= @employee.password %> 🔒</li>
+    </ul>
+    <p>Please login with these credentials whenever you need to request leave. We're here to help if you have any questions or concerns! 🛠️</p>
+    <p>We look forward to seeing you utilize our leave portal effectively! 🌟</p>
+    <div class="signature">
+      <p>Sincerely,</p>
+      <p>Soft Coding Solutions</p>
+    </div>
+  </div>
+</body>
+</html>
