@@ -77,7 +77,6 @@ module Api
           @holiday.rejection_reason = nil
           @holiday.approval_status = :pending
           @holiday.number_of_days = count_working_days(@holiday.start_date, @holiday.end_date)
-          
           date = Time.now
           # @holiday.document_holiday.attach(params[:holiday][:document_holiday]) unless params[:holiday][:document_holiday] == "null"
           if @holiday.start_date >= date && @holiday.end_date >= date
@@ -100,7 +99,6 @@ module Api
         if current_user.admin?
           @employee = current_user.employees.find_by(id: params[:employee_id])
           @holiday = @employee.holidays.find_by(id: params[:holiday_id])
-
           if @holiday
             if @holiday.approval_status == "pending"
                 approve_holiday_action
@@ -414,7 +412,6 @@ module Api
       end
 
       def get_employee_leave_details
-        
         employee = Employee.find_by(id: params[:employee_id])
         year = Time.now.year.to_s
         if employee.present?
@@ -689,9 +686,8 @@ module Api
 
       def approve_holiday_action
         @holiday.update(approval_status: :approved, sandwich_weekend: params[:sandwich_weekend])
-        number_of_days = @holiday.counting_days_in_year
+        number_of_days = @holiday.counting_days_in_year.values.sum
         @holiday.update(number_of_days: number_of_days)
-        
         message = "Your leave request has been accepted by the admin"
         send_notification_leave_mail(@holiday.employee,@holiday, message)
         render json: {data: @holiday, message: "Holiday request is approved by the admin"}, status: :ok
@@ -699,7 +695,7 @@ module Api
 
       def approve_lwp_action
         @holiday.update(approval_status: :approved_as_lwp, h_type: "leave_without_pay" )
-        number_of_days = @holiday.counting_days_in_year
+        number_of_days = @holiday.counting_days_in_year.values.sum
         @holiday.update(number_of_days: number_of_days)
         message = "Your leave request has been accepted as leave without pay by the admin"
         send_notification_leave_mail(@holiday.employee,@holiday, message)

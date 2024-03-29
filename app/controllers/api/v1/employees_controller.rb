@@ -58,6 +58,7 @@ module Api
               access_token = generate_access_token(@employee, client_app)
               render json:{
                 employee_id: @employee.id,
+                employee: @employee,
                 approval_status: @employee.approval_status,
                 access_token: access_token.token,
                 token_type: 'bearer',
