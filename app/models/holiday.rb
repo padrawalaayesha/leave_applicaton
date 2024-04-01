@@ -14,7 +14,7 @@ class Holiday < ApplicationRecord
     validates :start_date, presence: true , uniqueness: { scope: :employee_id, message: "has already been taken" }
     validates :end_date, presence: true, uniqueness: { scope: :employee_id, message: "has already been taken" }
     validate :validate_max_leave_count, on: [:create, :approve_holiday]
-
+    
     
     scope :casual_leave, -> { where(h_type: "casual_leave", approval_status: "approved") }
     scope :sick_leave, -> { where(h_type: "sick_leave", approval_status: "approved")}

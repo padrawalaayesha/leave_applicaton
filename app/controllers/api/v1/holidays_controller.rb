@@ -71,7 +71,6 @@ module Api
 
       def create
         unless current_user.admin?
-          # @employee = Employee.find_by(id: current_user.id.to_s)
           @holiday = current_user.holidays.new(holiday_params)
           @holiday.approval_status = nil
           @holiday.rejection_reason = nil
@@ -288,28 +287,7 @@ module Api
           render json: {data: pending_leave_details, message: "Number of pending leaves"}, status: :ok
         end
       end
-
- 
-      # def get_remaining_leaves
-      #   if current_user.admin?
-      #     remaining_leaves_count = {}
-      #     employees = Employee.all
-      #     employees.each do |employee|
-      #       approved_leave_count = Holiday.where(employee_id: employee.id, approval_status: true).count
-      #       remaining_leaves_count[employee.name] = [Holiday::MAX_ALLOWED_HOLIDAYS - approved_leave_count, 0].max
-      #     end
-      #     render json: { data: remaining_leaves_count, message: "Remaining leaves count for each employee" }, status: :ok
-      #   else
-      #     emp_id = current_user.id.to_s
-      #     @employee = Employee.find_by(id: emp_id)
-      #     @remainig_leaves_count = Holiday::MAX_ALLOWED_HOLIDAYS-@employee.holidays.where(approval_status: nil).count
-      #     if @remainig_leaves_count ==0
-      #       render json: {message:"You have utiized all your leave request"}, status: :ok
-      #     else
-      #       render json: {data: @remainig_leaves_count, message:"Number of leaves you can request"}, status: :ok
-      #     end  
-      #   end
-      # end
+      
       def get_remaining_leaves
         if current_user.admin?
           remaining_leaves_count = {}
