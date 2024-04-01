@@ -46,3 +46,5 @@ gem "devise", "~> 4.9"
 # gem "doorkeeper", "~> 5.6"
 gem 'doorkeeper', '>= 5.4.0'
 
+gem 'awesome_print'
+

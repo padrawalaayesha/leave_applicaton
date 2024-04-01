@@ -13,6 +13,7 @@ Rails.application.routes.draw do
           get 'employees_in_department', to: 'employees#employees_in_department', as: 'employees_in_department'
         end 
         member do
+          resources :calendar_events
           put 'approve_employee', to: 'employees#approve_employee', as: 'approve_employee'
           put 'reject_employee', to: 'employees#reject_employee', as: 'reject_employee'
         end
