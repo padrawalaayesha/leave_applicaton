@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :employees, only: [:index, :create, :show , :update, :destroy] do
+        resources :calendar_events
         collection do
           post 'create_token', to: 'employees#create_token', as: 'create_token'
           post 'generate_code' , to: 'employees#generate_code', as: 'generate_code'
@@ -13,7 +14,6 @@ Rails.application.routes.draw do
           get 'employees_in_department', to: 'employees#employees_in_department', as: 'employees_in_department'
         end 
         member do
-          resources :calendar_events
           put 'approve_employee', to: 'employees#approve_employee', as: 'approve_employee'
           put 'reject_employee', to: 'employees#reject_employee', as: 'reject_employee'
         end
