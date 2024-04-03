@@ -3,7 +3,7 @@ class Employee < ApplicationRecord
     # :recoverable, :rememberable, :validatable
     belongs_to :user
     has_many :holidays, dependent: :destroy
-  
+    has_many :calendar_events, dependent: :destroy
 
     attribute :casual_leave_count, default: 0
     attribute :sick_leave_count, default: 0

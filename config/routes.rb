@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :employees, only: [:index, :create, :show , :update, :destroy] do
+        resources :calendar_events
         collection do
           post 'create_token', to: 'employees#create_token', as: 'create_token'
           post 'generate_code' , to: 'employees#generate_code', as: 'generate_code'
