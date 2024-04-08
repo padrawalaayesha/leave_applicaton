@@ -4,7 +4,10 @@ Rails.application.routes.draw do
   # config/routes.rb
   namespace :api do
     namespace :v1 do
+      get 'get_authorization_details', to: 'homes#get_authorization_details', as: 'get_authorization_details'
       resources :employees, only: [:index, :create, :show , :update, :destroy] do
+        post 'checkin', to: 'attendances#checkin'
+        post 'checkout', to: 'attendances#checkout'
         resources :calendar_events
         collection do
           post 'create_token', to: 'employees#create_token', as: 'create_token'
