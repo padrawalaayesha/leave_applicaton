@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2024_04_05_100420) do
+ActiveRecord::Schema.define(version: 2024_04_08_055649) do
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -37,10 +37,10 @@ ActiveRecord::Schema.define(version: 2024_04_05_100420) do
     t.date "date"
     t.time "checkin_time"
     t.time "checkout_time"
-    t.string "location"
     t.integer "employee_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.json "location"
     t.index ["employee_id"], name: "index_attendances_on_employee_id"
   end
 
