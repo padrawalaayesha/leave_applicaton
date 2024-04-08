@@ -7,6 +7,7 @@ module Api
         @attendance = @employee.attendances.build(attendance_params)
         binding.pry
         @attendance.checkin_image.attach(params[:attendance][:checkin_image])
+        @attendance.location = JSON.parse(params[:attendance][:location])
         if @attendance.save
           render json: {attendance: @attendance, message: "Checked in successfull"}, status: :ok
         else
@@ -33,7 +34,7 @@ module Api
       end
 
       def attendance_params
-        params.require(:attendance).permit(:date, :checkin_time, :checkout_time, :checkin_image, location: {})
+        params.require(:attendance).permit(:date, :checkin_time, :checkout_time, :checkin_image, :location)
       end
     end
   end

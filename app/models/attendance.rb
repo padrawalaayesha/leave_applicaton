@@ -5,7 +5,5 @@ class Attendance < ApplicationRecord
   has_one_attached :checkout_image
 
   validates :date , presence: true
-  validates :checkin_image, presence: true, on: :create
-  validates :checkout_image, presence: true, on: :update
 
 end
