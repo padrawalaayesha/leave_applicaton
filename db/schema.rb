@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2024_04_08_055649) do
+ActiveRecord::Schema.define(version: 2024_04_09_121510) do
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -35,12 +35,14 @@ ActiveRecord::Schema.define(version: 2024_04_08_055649) do
 
   create_table "attendances", force: :cascade do |t|
     t.date "date"
-    t.time "checkin_time"
-    t.time "checkout_time"
+    t.datetime "checkin_time"
+    t.datetime "checkout_time"
     t.integer "employee_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.json "location"
+    t.json "checkin_location"
+    t.json "checkout_location"
+    t.float "hours_worked"
     t.index ["employee_id"], name: "index_attendances_on_employee_id"
   end
 
