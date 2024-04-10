@@ -1,5 +1,6 @@
 Rails.application.configure do
   config.hosts << /[\w-]+\.ngrok-free\.app/
+  routes.default_url_options[:host] = 'https://7d35-103-240-204-158.ngrok-free.app'
   # Settings specified here will take precedence over those in config/application.rb.
 
   # In the development environment your application's code is reloaded on
