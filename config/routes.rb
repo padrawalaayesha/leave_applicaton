@@ -15,6 +15,9 @@ Rails.application.routes.draw do
           post 'verify_code/:employee_id', to: 'employees#verify_code', as: 'verify_code'
           put 'reset_password/:employee_id', to: 'employees#reset_password', as: 'reset_password'
           get 'employees_in_department', to: 'employees#employees_in_department', as: 'employees_in_department'
+          get 'todays_attendances', to: 'attendances#todays_attendances', as: 'todays_attendances'
+          get 'filter_attendances', to: 'attendances#filter_attendances', as: 'filter_attendances'
+          get 'filter_attendances_date', to: 'attendances#filter_attendances_date', as: 'filter_attendances_date'
         end 
         member do
           put 'approve_employee', to: 'employees#approve_employee', as: 'approve_employee'
